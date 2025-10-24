@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurora Arcade · Lounge</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page page--arcade">
+  <header class="site-header">
+    <div class="brand">
+      <a class="brand__link" href="index.html">Aurora Arcade</a>
+      <span class="brand__tagline">Arcade lounge</span>
+    </div>
+    <nav class="main-nav">
+      <a class="main-nav__link" href="index.html">Home</a>
+      <a class="main-nav__link" href="casino.html">Casino Floor</a>
+      <a class="main-nav__link main-nav__link--active" href="online-casino.html">Arcade Lounge</a>
+    </nav>
+    <div class="player-panel">
+      <span class="player-panel__label">Credits</span>
+      <span class="player-panel__value" id="onlineCredits">0</span>
+      <button class="btn btn--ghost" id="onlineReset">Reset</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="section">
+      <header class="section__header">
+        <h1>Arcade lounge</h1>
+        <p>A softer take on casino fun. Chase mini challenges, track streaks, and celebrate fictional wins.</p>
+      </header>
+      <div class="grid grid--features">
+        <article class="feature-card feature-card--accent">
+          <h3>Daily streak</h3>
+          <p>Build a run of sessions without losing your entire virtual bankroll.</p>
+        </article>
+        <article class="feature-card feature-card--accent">
+          <h3>Creative prompts</h3>
+          <p>Each challenge is a playful spin on stake-style games, simplified for quick tests.</p>
+        </article>
+        <article class="feature-card feature-card--accent">
+          <h3>Shareable stats</h3>
+          <p>A live feed keeps the last 20 events so you can boast about the imaginary jackpot.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--challenge-nav">
+      <header class="section__header section__header--tight">
+        <h2>Choose your lounge game</h2>
+        <p>Jump into an expanded view for each experience. Every credit shift carries through the lounge.</p>
+      </header>
+      <div class="challenge-nav">
+        <a class="challenge-nav__card challenge-nav__card--crash" href="#crashGame">
+          <span class="challenge-nav__title">Orbital Crash</span>
+          <span class="challenge-nav__meta">Multiplier flight · Risk the implosion</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--mines" href="#minesGame">
+          <span class="challenge-nav__title">Meteor Mines</span>
+          <span class="challenge-nav__meta">25 tile board · Cash out early</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--limbo" href="#limboGame">
+          <span class="challenge-nav__title">Limbo Line</span>
+          <span class="challenge-nav__meta">Target multiplier · Beam dodges fate</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--crossy" href="#crossyGame">
+          <span class="challenge-nav__title">Crossy Run</span>
+          <span class="challenge-nav__meta">Lane dash · Classic arcade vibes</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--horses" href="#horseGame">
+          <span class="challenge-nav__title">Neon Derby</span>
+          <span class="challenge-nav__meta">Three runner sprint · Cheer to boost</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--plinko" href="#plinkoGame">
+          <span class="challenge-nav__title">Quantum Plinko</span>
+          <span class="challenge-nav__meta">Peg board drop · Neon physics</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--skee" href="#skeeGame">
+          <span class="challenge-nav__title">Photon Skee-Ball</span>
+          <span class="challenge-nav__meta">Multi-ring ramp · Spark trails</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--memory" href="#memoryGame">
+          <span class="challenge-nav__title">Memory Matrix</span>
+          <span class="challenge-nav__meta">Pattern recall · Grid glow-up</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="game-section game-section--crash" id="crashGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Orbital Crash</h3>
+            <p>Ride the multiplier curve in a full-width viewport. Cash out before the rocket hits the redline.</p>
+          </div>
+          <div class="crash-viewport crash-viewport--expanded">
+            <div class="crash-sky">
+              <div class="crash-trail" id="crashTrail"></div>
+              <div class="crash-rocket" id="crashRocket">🚀</div>
+            </div>
+            <div class="crash-readout">
+              <span class="crash-label">Multiplier</span>
+              <span class="crash-value" id="crashMultiplier">1.00x</span>
+            </div>
+            <div class="crash-progress crash-progress--thick">
+              <div class="crash-progress__bar" id="crashProgress"></div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Flight controls</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="crashBet" min="20" step="20" value="40">
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="crashButton">Launch</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="crashStatus" data-status>Ready for launch.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--mines" id="minesGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Meteor Mines</h3>
+            <p>Stretch the grid across the board. Reveal safe tiles with bold new contrasts.</p>
+          </div>
+          <div class="mines-viewport mines-viewport--expanded">
+            <div class="mines-grid" id="minesGrid"></div>
+            <div class="mines-info">
+              <span>Safe reveals <strong id="minesSafe">0</strong></span>
+              <span>Multiplier <strong id="minesMultiplier">1.00x</strong></span>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Mission loadout</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="minesBet" min="20" step="20" value="30">
+              </label>
+              <label class="form__field">
+                <span>Meteors on board</span>
+                <select id="minesCount">
+                  <option value="4">4</option>
+                  <option value="5" selected>5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                </select>
+              </label>
+              <div class="button-row">
+                <button class="btn btn--primary btn--glow btn--wide" id="minesStart">Arm grid</button>
+                <button class="btn btn--ghost btn--wide" id="minesCashOut" disabled>Cash out</button>
+              </div>
+            </div>
+          </div>
+          <p class="game-panel__status" id="minesStatus" data-status>Arm the grid to begin.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--limbo" id="limboGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Limbo Line</h3>
+            <p>Watch the energy beam sweep a much larger track. Hover over the threshold and celebrate lucky rolls.</p>
+          </div>
+          <div class="limbo-viewport limbo-viewport--expanded">
+            <div class="limbo-track">
+              <div class="limbo-threshold" id="limboThreshold"></div>
+              <div class="limbo-pointer" id="limboPointer"></div>
+            </div>
+            <div class="limbo-result limbo-result--large" id="limboResult">--</div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Beam tuning</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="limboBet" min="10" step="10" value="25">
+              </label>
+              <label class="form__field">
+                <span>Target multiplier</span>
+                <input type="number" id="limboTarget" min="1.2" step="0.1" value="2.0">
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="limboButton">Roll outcome</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="limboStatus" data-status>Pick a number and test the cosmos.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--crossy" id="crossyGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Crossy Run</h3>
+            <p>We remixed the look with voxel-style roads, lily pads, and neon headlights. Time your hops for maximum packets.</p>
+          </div>
+          <div class="crossy-viewport crossy-viewport--expanded">
+            <div class="crossy-scene">
+              <div class="crossy-lanes crossy-lanes--scene" id="crossyLanes"></div>
+              <div class="crossy-player" id="crossyPlayer"></div>
+              <div class="crossy-traffic" id="crossyTraffic"></div>
+            </div>
+            <div class="crossy-info">
+              <span>Safe hops <strong id="crossyLane">0</strong>/5</span>
+              <span>Multiplier <strong id="crossyMultiplier">1.00x</strong></span>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Road briefing</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="crossyBet" min="20" step="20" value="40">
+              </label>
+              <div class="button-row">
+                <button class="btn btn--primary btn--glow btn--wide" id="crossyStart">Start run</button>
+                <button class="btn btn--ghost btn--wide" id="crossyHop" disabled>Hop</button>
+                <button class="btn btn--ghost btn--wide" id="crossyBail" disabled>Bail out</button>
+              </div>
+            </div>
+          </div>
+          <p class="game-panel__status" id="crossyStatus" data-status>Arm a run to begin.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--horses" id="horseGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Neon Derby</h3>
+            <p>Follow a panoramic race track with broader progress bands and light trails for the leaders.</p>
+          </div>
+          <div class="horse-viewport horse-viewport--expanded">
+            <div class="horse-track horse-track--expanded" id="horseTrack"></div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Race plan</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="horseBet" min="30" step="10" value="60">
+              </label>
+              <label class="form__field">
+                <span>Select runner</span>
+                <select id="horsePick">
+                  <option value="nova">Nova</option>
+                  <option value="comet">Comet</option>
+                  <option value="eclipse">Eclipse</option>
+                </select>
+              </label>
+              <div class="button-row">
+                <button class="btn btn--primary btn--glow btn--wide" id="horseStart">Start race</button>
+                <button class="btn btn--ghost btn--wide" id="horseCheer" disabled>Cheer</button>
+              </div>
+            </div>
+          </div>
+          <p class="game-panel__status" id="horseStatus" data-status>Select a runner and start the race.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--plinko" id="plinkoGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Quantum Plinko</h3>
+            <p>Drop the puck through a full peg board with animated lights, shifting gradients, and a celebratory landing.</p>
+          </div>
+          <div class="plinko-viewport plinko-viewport--expanded">
+            <div class="plinko-scene">
+              <div class="plinko-board plinko-board--scene" id="plinkoBoard"></div>
+              <div class="plinko-pegs" id="plinkoPegs"></div>
+              <div class="plinko-puck" id="plinkoPuck"></div>
+            </div>
+            <div class="plinko-info">
+              <span>Last slot <strong id="plinkoSlot">--</strong></span>
+              <span>Multiplier <strong id="plinkoMultiplier">1.00x</strong></span>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Drop settings</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="plinkoBet" min="10" step="10" value="30">
+              </label>
+              <label class="form__field">
+                <span>Drop lane</span>
+              <select id="plinkoLane">
+                  <option value="0">Far left</option>
+                  <option value="1">Left</option>
+                  <option value="2">Mid-left</option>
+                  <option value="3" selected>Center</option>
+                  <option value="4">Mid-right</option>
+                  <option value="5">Right</option>
+                  <option value="6">Far right</option>
+                  <option value="7">Edge</option>
+                </select>
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="plinkoDrop">Drop puck</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="plinkoStatus" data-status>Select a lane and drop the puck.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <header class="section__header section__header--tight">
+        <h2>Lounge log</h2>
+        <p>Latest events from every challenge.</p>
+      </header>
+      <div class="history" id="onlineHistory"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Arcade simulations use fictional credits only. No real wagers occur.</p>
+  </footer>
+
+  <script src="online.js"></script>
+</body>
+</html>

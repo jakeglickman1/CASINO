@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurora Arcade</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page page--landing">
+  <header class="site-header">
+    <div class="brand">
+      <a class="brand__link" href="index.html">Aurora Arcade</a>
+      <span class="brand__tagline">Interactive casino playground</span>
+    </div>
+    <nav class="main-nav">
+      <a class="main-nav__link" href="index.html">Home</a>
+      <a class="main-nav__link" href="casino.html">Casino Floor</a>
+      <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
+    </nav>
+  </header>
+
+  <main class="content">
+    <section class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow">Welcome traveller</p>
+        <h1>Feel the thrill of a neon casino without leaving your chair.</h1>
+        <p class="hero__lead">
+          Aurora Arcade is a handcrafted demo experience featuring quick-play mini games,
+          crisp visuals, and a relaxed credit system that lets you experiment freely.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="casino.html">Enter the casino floor</a>
+          <a class="btn btn--ghost" href="online-casino.html">Browse arcade lounge</a>
+        </div>
+      </div>
+      <div class="hero__panel">
+        <div class="hero__card">
+          <span class="hero__stat-label">Daily spins played</span>
+          <span class="hero__stat-value">42,180</span>
+        </div>
+        <div class="hero__card hero__card--accent">
+          <p class="hero__quote">“It feels like a futuristic lounge — slick, simple, and fun.”</p>
+          <span class="hero__attribution">— The Aurora Team</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <header class="section__header">
+        <h2>Why Aurora?</h2>
+        <p>We rebuilt every page from scratch to focus on clarity, accessibility, and lightweight fun.</p>
+      </header>
+      <div class="grid grid--features">
+        <article class="feature-card">
+          <h3>Instant pacing</h3>
+          <p>Every interaction responds immediately with punchy feedback, so you stay in the flow.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Thoughtful design</h3>
+          <p>We paired a calm color palette with bold typography for a readable, modern presentation.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Sandbox safe</h3>
+          <p>Play with virtual credits only. No logins, no tracking, just a creative coding showcase.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--split">
+      <div class="section__media">
+        <div class="tilt-card">
+          <span class="tilt-card__icon">🎲</span>
+          <span class="tilt-card__label">Preview</span>
+          <p class="tilt-card__text">Shuffle, spin, and test your luck with our trio of casual mini games.</p>
+        </div>
+      </div>
+      <div class="section__body">
+        <h2>Step onto the digital felt</h2>
+        <p>
+          The casino floor features Lucky Spin slots, High Card Duel, and a simple color bet roulette.
+          Everything is tuned for quick rounds, making it easy to demo or extend with your own ideas.
+        </p>
+        <ul class="list">
+          <li>1000 credits to start every visit</li>
+          <li>Responsive layout for desktop and mobile</li>
+          <li>Readable history log to track your streaks</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section section--cta">
+      <h2>Ready to explore?</h2>
+      <p>Drop into the casino, then share your favourite moments with friends.</p>
+      <a class="btn btn--primary" href="casino.html">Launch Aurora Arcade</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Aurora Arcade. Built as a creative coding experiment.</p>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

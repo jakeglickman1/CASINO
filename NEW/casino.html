@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurora Arcade · Casino Floor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page page--casino">
+  <header class="site-header">
+    <div class="brand">
+      <a class="brand__link" href="index.html">Aurora Arcade</a>
+      <span class="brand__tagline">Casino floor</span>
+    </div>
+    <nav class="main-nav">
+      <a class="main-nav__link" href="index.html">Home</a>
+      <a class="main-nav__link main-nav__link--active" href="casino.html">Casino Floor</a>
+      <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
+    </nav>
+    <div class="player-panel">
+      <span class="player-panel__label">Credits</span>
+      <span class="player-panel__value" id="creditsDisplay">0</span>
+      <button class="btn btn--ghost" id="resetBankroll">Reset</button>
+    </div>
+  </header>
+
+  <main class="content content--wide">
+    <section class="section section--challenge-nav section--floor-nav">
+      <header class="section__header section__header--tight">
+        <h1>Aurora game floor</h1>
+        <p>Explore cinematic tables and oversized mini-games. Every wager connects to the shared bankroll.</p>
+      </header>
+      <div class="challenge-nav">
+        <a class="challenge-nav__card challenge-nav__card--crash" href="#slotsGame">
+          <span class="challenge-nav__title">Lucky Spin Slots</span>
+          <span class="challenge-nav__meta">Triple streak multipliers</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--mines" href="#duelGame">
+          <span class="challenge-nav__title">High Card Duel</span>
+          <span class="challenge-nav__meta">Single card showdown</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--limbo" href="#rouletteGame">
+          <span class="challenge-nav__title">Aurora Roulette</span>
+          <span class="challenge-nav__meta">Red · Black · Neon zero</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--crossy" href="#crapsGame">
+          <span class="challenge-nav__title">Neon Craps</span>
+          <span class="challenge-nav__meta">Point play with holo dice</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--horses" href="#baccaratGame">
+          <span class="challenge-nav__title">Cyber Baccarat</span>
+          <span class="challenge-nav__meta">Player · Banker · Tie</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--plinko" href="#blackjackGame">
+          <span class="challenge-nav__title">Blackjack 21</span>
+          <span class="challenge-nav__meta">Double down on the felt</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--skee" href="#pokerGame">
+          <span class="challenge-nav__title">Poker Draw</span>
+          <span class="challenge-nav__meta">Hold, draw, reveal</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="game-section game-section--slots" id="slotsGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Lucky Spin Slots</h3>
+            <p>Expanded reels and a glowing cabinet put the focus on streaks. Land pairs to stay alive or line up triples for dramatic payouts.</p>
+          </div>
+          <div class="slots-viewport">
+            <div class="slots__reels">
+              <span class="slots__reel slots__reel--spark" id="reel1" data-spin>🍒</span>
+              <span class="slots__reel slots__reel--spark" id="reel2" data-spin>⭐</span>
+              <span class="slots__reel slots__reel--spark" id="reel3" data-spin>🍋</span>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Spin controls</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="slotsBet" min="10" step="10" value="50">
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="spinButton">Spin reels</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="slotsStatus" data-status>Set your stake and spin the reels.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--duel" id="duelGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>High Card Duel</h3>
+            <p>Oversized holo cards snap into view as you challenge the dealer to a single-card flip.</p>
+          </div>
+          <div class="duel-viewport">
+            <div class="card-duel__hands">
+              <div class="card-duel__hand">
+                <span class="card-duel__label">You</span>
+                <span class="card card--large" id="playerCard">?</span>
+              </div>
+              <div class="card-duel__hand">
+                <span class="card-duel__label">Dealer</span>
+                <span class="card card--large" id="dealerCard">?</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Draw settings</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="duelBet" min="25" step="25" value="50">
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="duelButton">Draw cards</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="duelStatus" data-status>Wager credits to flip for high card.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--roulette" id="rouletteGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Aurora Roulette</h3>
+            <p>A full neon wheel spins beneath a crystal pointer. Alternate reds and blacks orbit while zero glows in cyan.</p>
+          </div>
+          <div class="roulette-viewport">
+            <div class="roulette__wheel">
+              <div class="roulette__wheel-inner" id="rouletteWheel">
+                <div class="roulette__numbers"></div>
+                <div class="roulette__hub"></div>
+              </div>
+              <div class="roulette__pointer" id="roulettePointer"></div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Wheel controls</h4>
+            <form class="roulette__controls" id="rouletteForm">
+              <div class="form form--stacked">
+                <label class="form__field">
+                  <span>Bet amount</span>
+                  <input type="number" id="rouletteBet" min="25" step="25" value="50">
+                </label>
+                <label class="form__field">
+                  <span>Color</span>
+                  <select id="rouletteChoice">
+                    <option value="red">Red</option>
+                    <option value="black">Black</option>
+                  </select>
+                </label>
+                <button class="btn btn--primary btn--glow btn--wide" type="submit">Spin wheel</button>
+              </div>
+              <div class="roulette__readout">
+                <span class="roulette__label">Last result</span>
+                <div class="roulette__result" id="rouletteResult" data-spin>--</div>
+              </div>
+            </form>
+          </div>
+          <p class="game-panel__status" id="rouletteStatus" data-status>Pick a color and spin the wheel.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--craps" id="crapsGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Neon Craps</h3>
+            <p>Every roll echoes across a glowing rail. Establish the point, then hit it again before seven shows.</p>
+          </div>
+          <div class="craps-viewport">
+            <div class="craps__table">
+              <div class="craps__dice" id="crapsDice">
+                <span class="die" data-value="1"></span>
+                <span class="die" data-value="1"></span>
+              </div>
+              <div class="craps__point">
+                <span class="craps__label">Point</span>
+                <strong id="crapsPoint">--</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Dice controls</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="crapsBet" min="50" step="25" value="75">
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="crapsRoll">Throw dice</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="crapsStatus" data-status>Come-out roll the bones.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--baccarat" id="baccaratGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Cyber Baccarat</h3>
+            <p>Animated holo-cards land on a split table while banker and player totals pulse at the front edge.</p>
+          </div>
+          <div class="baccarat-viewport">
+            <div class="baccarat__table">
+              <div class="baccarat__hand">
+                <span class="baccarat__label">Player</span>
+                <div class="card-row card-row--small" id="baccaratPlayer"></div>
+                <span class="hand-value" id="baccaratPlayerScore">--</span>
+              </div>
+              <div class="baccarat__hand baccarat__hand--banker">
+                <span class="baccarat__label">Banker</span>
+                <div class="card-row card-row--small" id="baccaratBanker"></div>
+                <span class="hand-value" id="baccaratBankerScore">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Place wager</h4>
+            <div class="form form--inline">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="baccaratBet" min="50" step="25" value="100">
+              </label>
+              <label class="form__field">
+                <span>Wager on</span>
+                <select id="baccaratChoice">
+                  <option value="player">Player</option>
+                  <option value="banker">Banker</option>
+                  <option value="tie">Tie</option>
+                </select>
+              </label>
+              <button class="btn btn--primary btn--glow" id="baccaratDeal">Deal round</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="baccaratStatus" data-status>Bet the shoe and let it ride.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--blackjack" id="blackjackGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Blackjack 21</h3>
+            <p>A curved neon table frames both hands while totals illuminate based on who’s ahead.</p>
+          </div>
+          <div class="blackjack-viewport">
+            <div class="blackjack__table">
+              <div class="blackjack__hand">
+                <span class="blackjack__label">Dealer</span>
+                <div class="card-row" id="blackjackDealer"></div>
+                <span class="hand-value" id="blackjackDealerValue">--</span>
+              </div>
+              <div class="blackjack__hand blackjack__hand--player">
+                <span class="blackjack__label">You</span>
+                <div class="card-row" id="blackjackPlayer"></div>
+                <span class="hand-value" id="blackjackPlayerValue">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Player actions</h4>
+            <div class="form form--inline">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="blackjackBet" min="50" step="25" value="100">
+              </label>
+              <button class="btn btn--primary btn--glow" id="blackjackDeal">Deal</button>
+              <button class="btn btn--ghost" id="blackjackHit" disabled>Hit</button>
+              <button class="btn btn--ghost" id="blackjackStand" disabled>Stand</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="blackjackStatus" data-status>Enter a bet and press deal to start a hand.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--poker" id="pokerGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Poker Draw</h3>
+            <p>Stretch out the showdown against Vega and Rigel with wide card rows and illuminated rank labels.</p>
+          </div>
+          <div class="poker-viewport">
+            <div class="poker__table">
+              <div class="poker__hand poker__hand--player">
+                <span class="poker__label">You</span>
+                <div class="card-row" id="pokerPlayerHand"></div>
+                <span class="hand-value" id="pokerPlayerRank">--</span>
+              </div>
+              <div class="poker__hand">
+                <span class="poker__label">Vega</span>
+                <div class="card-row card-row--small" id="pokerAi1"></div>
+                <span class="hand-value" id="pokerAi1Rank">--</span>
+              </div>
+              <div class="poker__hand">
+                <span class="poker__label">Rigel</span>
+                <div class="card-row card-row--small" id="pokerAi2"></div>
+                <span class="hand-value" id="pokerAi2Rank">--</span>
+              </div>
+            </div>
+            <div class="poker__hints">Click your cards to hold them before drawing.</div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Table controls</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="pokerBet" min="100" step="50" value="150">
+              </label>
+              <div class="button-row">
+                <button class="btn btn--primary btn--glow btn--wide" id="pokerDeal">Deal hand</button>
+                <button class="btn btn--ghost btn--wide" id="pokerDraw" disabled>Draw</button>
+                <button class="btn btn--ghost btn--wide" id="pokerReveal" disabled>Reveal</button>
+              </div>
+            </div>
+          </div>
+          <p class="game-panel__status" id="pokerStatus" data-status>Deal a hand, hold favorites, draw once, then reveal.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--log">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <h3>Session log</h3>
+            <p>Track the latest twenty rounds across every table to monitor hot streaks.</p>
+          </div>
+          <div class="log-viewport">
+            <div class="history" id="history"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Aurora Arcade. All simulations use fictional credits only.</p>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

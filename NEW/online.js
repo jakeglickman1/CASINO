@@ -16,6 +16,7 @@
   const crashProgressBar = document.getElementById('crashProgress');
   const crashRocket = document.getElementById('crashRocket');
   const crashTrail = document.getElementById('crashTrail');
+  const crashAutoBtn = document.getElementById('crashAutoCash');
 
   // Mines elements
   const minesBetInput = document.getElementById('minesBet');
@@ -26,6 +27,7 @@
   const minesGridEl = document.getElementById('minesGrid');
   const minesSafeEl = document.getElementById('minesSafe');
   const minesMultiplierEl = document.getElementById('minesMultiplier');
+  const minesAutoBtn = document.getElementById('minesAutoCash');
 
   // Limbo elements
   const limboBetInput = document.getElementById('limboBet');
@@ -83,6 +85,11 @@
   const memoryGridEl = document.getElementById('memoryGrid');
   const memoryRoundEl = document.getElementById('memoryRound');
   const memoryStreakEl = document.getElementById('memoryStreak');
+  const resultModalEl = document.getElementById('resultModal');
+  const resultModalTitleEl = document.getElementById('resultModalTitle');
+  const resultModalMessageEl = document.getElementById('resultModalMessage');
+  const resultModalCloseBtn = document.getElementById('resultModalClose');
+  const resultModalBackdropEl = document.getElementById('resultModalBackdrop');
 
   const crashState = {
     active: false,
@@ -91,6 +98,8 @@
     crashPoint: 0,
     current: 1,
     maxDisplay: 4.5,
+    autoEnabled: false,
+    autoTarget: 0,
   };
 
   const minesState = {
@@ -102,6 +111,8 @@
     safeRevealed: 0,
     multiplier: 1,
     hit: false,
+    autoEnabled: false,
+    autoTarget: 0,
   };
 
   const limboState = {
@@ -114,7 +125,7 @@
     { id: 'eclipse', name: 'Eclipse' },
   ];
 
-  const PLINKO_MULTIPLIERS = [0.2, 0.5, 0.8, 1.1, 1.6, 2.2, 3.2, 5];
+  const PLINKO_MULTIPLIERS = [5, 3.2, 2.2, 0.2, 0.2, 2.2, 3.2, 5];
   const PLINKO_ROWS = PLINKO_MULTIPLIERS.length - 1;
   const SKEE_MULTIPLIERS = [0.6, 1.2, 1.8, 3.2];
   const SKEE_POSITIONS = [
@@ -218,6 +229,43 @@
     }
   }
 
+  function showResultModal({ game, bet = 0, payout = 0, tone = 'neutral', message = '' }) {
+    if (!resultModalEl || !resultModalTitleEl || !resultModalMessageEl) return;
+    const net = payout - bet;
+    let heading;
+    if (net > 0) heading = 'You won!';
+    else if (net < 0) heading = 'You lost.';
+    else heading = 'Round pushed.';
+
+    const summary =
+      net > 0
+        ? `${game} paid ${payout.toLocaleString()} credits (net +${net.toLocaleString()}).`
+        : net < 0
+          ? `${game} cost ${Math.abs(net).toLocaleString()} credits.`
+          : `${game} returned your stake.`;
+    const detail = message ? `${message} ${summary}` : summary;
+
+    if (tone === 'positive') resultModalEl.dataset.tone = 'positive';
+    else if (tone === 'negative') resultModalEl.dataset.tone = 'negative';
+    else delete resultModalEl.dataset.tone;
+
+    resultModalTitleEl.textContent = heading;
+    resultModalMessageEl.textContent = detail;
+    resultModalEl.classList.add('is-visible');
+    resultModalEl.setAttribute('aria-hidden', 'false');
+    if (resultModalCloseBtn) {
+      setTimeout(() => resultModalCloseBtn.focus(), 60);
+    }
+  }
+
+  function hideResultModal() {
+    if (!resultModalEl) return;
+    if (!resultModalEl.classList.contains('is-visible')) return;
+    resultModalEl.classList.remove('is-visible');
+    resultModalEl.setAttribute('aria-hidden', 'true');
+    delete resultModalEl.dataset.tone;
+  }
+
   function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
   }
@@ -253,6 +301,17 @@
 
   // ---------------------------------------------------------------------------
   // Crash logic
+  function updateCrashAutoButton() {
+    if (!crashAutoBtn) return;
+    if (crashState.autoEnabled && crashState.autoTarget >= 1.1) {
+      crashAutoBtn.classList.add('is-active');
+      crashAutoBtn.textContent = `Auto cash @ ${crashState.autoTarget.toFixed(2)}x`;
+    } else {
+      crashAutoBtn.classList.remove('is-active');
+      crashAutoBtn.textContent = 'Auto cash out';
+    }
+  }
+
   function updateCrashButton() {
     if (!crashButton) return;
     if (crashState.active) {
@@ -274,6 +333,7 @@
     if (crashTrail) crashTrail.style.height = '0px';
     crashState.current = 1;
     updateCrashButton();
+    updateCrashAutoButton();
   }
 
   function endCrashRound(outcome) {
@@ -281,6 +341,7 @@
     crashState.timer = null;
     crashState.active = false;
     updateCrashButton();
+    updateCrashAutoButton();
 
     if (outcome === 'crash' && crashRocket) {
       crashRocket.textContent = '💥';
@@ -300,7 +361,8 @@
   }
 
   function finishCrashRound({ outcome, payout, message, tone }) {
-    const net = payout - crashState.bet;
+    const bet = crashState.bet;
+    const net = payout - bet;
     if (payout > 0) {
       credits += payout;
       updateCredits();
@@ -308,6 +370,13 @@
     }
     setStatus(crashStatus, message, tone);
     logEvent('Orbital Crash', message, net);
+    showResultModal({
+      game: 'Orbital Crash',
+      bet,
+      payout,
+      message,
+      tone,
+    });
     crashState.bet = 0;
     endCrashRound(outcome);
   }
@@ -333,6 +402,7 @@
     crashState.maxDisplay = Math.max(crashState.crashPoint + 1.2, 4.5);
     setStatus(crashStatus, 'Launching... hit cash out before the rocket blows!', 'neutral');
     updateCrashButton();
+    updateCrashAutoButton();
 
     crashState.timer = setInterval(() => {
       const delta = 0.02 + (crashState.current - 1) * 0.025;
@@ -356,6 +426,14 @@
       }
 
       updateCrashButton();
+      if (
+        crashState.autoEnabled &&
+        crashState.autoTarget >= 1.1 &&
+        crashState.current >= crashState.autoTarget
+      ) {
+        cashOutCrash();
+        return;
+      }
 
       if (crashState.current >= crashState.crashPoint) {
         crashState.current = crashState.crashPoint;
@@ -401,6 +479,18 @@
     }
   }
 
+  function updateMinesAutoButton() {
+    if (!minesAutoBtn) return;
+    if (minesState.autoEnabled && minesState.autoTarget > 0) {
+      minesAutoBtn.classList.add('is-active');
+      minesAutoBtn.textContent = `Auto cash @ ${minesState.autoTarget.toFixed(2)}x`;
+    } else {
+      minesAutoBtn.classList.remove('is-active');
+      minesAutoBtn.textContent = 'Auto cash out';
+    }
+    minesAutoBtn.disabled = false;
+  }
+
   function resetMinesBoard() {
     minesState.active = false;
     minesState.bet = 0;
@@ -422,6 +512,7 @@
     if (minesMultiplierEl) minesMultiplierEl.textContent = '1.00x';
     if (minesCashOutBtn) minesCashOutBtn.disabled = true;
     if (minesStartBtn) minesStartBtn.disabled = false;
+    updateMinesAutoButton();
   }
 
   function updateMinesInfo() {
@@ -451,10 +542,19 @@
     updateMinesInfo();
     if (minesCashOutBtn) minesCashOutBtn.disabled = true;
     if (minesStartBtn) minesStartBtn.disabled = false;
-    const net = payout - minesState.bet;
+    const bet = minesState.bet;
+    const net = payout - bet;
     setStatus(minesStatus, message, tone);
     logEvent('Meteor Mines', message, net);
+    showResultModal({
+      game: 'Meteor Mines',
+      bet,
+      payout,
+      message,
+      tone,
+    });
     minesState.bet = 0;
+    updateMinesAutoButton();
   }
 
   function adjacentBombs(index) {
@@ -495,13 +595,26 @@
     const neighbors = adjacentBombs(index);
     cell.dataset.state = 'revealed';
     cell.disabled = true;
-    cell.textContent = neighbors > 0 ? neighbors.toString() : '✨';
+    cell.textContent = '✨';
     if (neighbors === 0) cell.classList.add('pulse');
 
     minesState.safeRevealed += 1;
     const boost = 0.35 + minesState.bombs * 0.03;
     minesState.multiplier = Number((1 + minesState.safeRevealed * boost).toFixed(2));
     updateMinesInfo();
+
+    if (
+      minesState.autoEnabled &&
+      minesState.autoTarget > 0 &&
+      minesState.safeRevealed > 0 &&
+      minesState.multiplier >= minesState.autoTarget
+    ) {
+      setTimeout(() => {
+        if (minesState.active) {
+          cashOutMines();
+        }
+      }, 180);
+    }
 
     const safeTotal = 25 - minesState.bombs;
     if (minesState.safeRevealed >= safeTotal) {
@@ -565,6 +678,7 @@
     }
     if (minesCashOutBtn) minesCashOutBtn.disabled = false;
     if (minesStartBtn) minesStartBtn.disabled = true;
+    updateMinesAutoButton();
 
     updateMinesInfo();
     setStatus(minesStatus, 'Grid armed. Reveal tiles or cash out early.', 'neutral');
@@ -656,6 +770,13 @@
 
       setStatus(limboStatus, message, tone);
       logEvent('Limbo Line', message, payout - bet);
+      showResultModal({
+        game: 'Limbo Line',
+        bet,
+        payout,
+        message,
+        tone,
+      });
 
       limboState.animating = false;
       if (limboButton) limboButton.disabled = false;
@@ -684,9 +805,17 @@
       updateCredits();
       flashCredits(tone === 'positive' ? 'positive' : 'neutral');
     }
-    const net = payout - skeeState.bet;
+    const bet = skeeState.bet;
+    const net = payout - bet;
     setStatus(skeeStatus, message, tone);
     logEvent('Photon Skee-Ball', message, net);
+    showResultModal({
+      game: 'Photon Skee-Ball',
+      bet,
+      payout,
+      message,
+      tone,
+    });
     setTimeout(() => resetSkeeUI(), 750);
   }
 
@@ -864,9 +993,17 @@
       flashCredits(tone === 'positive' ? 'positive' : 'neutral');
     }
 
-    const net = payout - memoryState.bet;
+    const bet = memoryState.bet;
+    const net = payout - bet;
     setStatus(memoryStatus, message, tone);
     logEvent('Memory Matrix', message, net);
+    showResultModal({
+      game: 'Memory Matrix',
+      bet,
+      payout,
+      message,
+      tone,
+    });
 
     memoryState.bet = 0;
     resetMemoryUI();
@@ -1009,16 +1146,23 @@
     setCrossyControls(false);
     renderCrossyLanes();
     stopCrossyTraffic();
+    const bet = crossyState.bet;
+    const net = payout - bet;
     if (payout > 0) {
       credits += payout;
       updateCredits();
-      const net = payout - crossyState.bet;
       if (net > 0) flashCredits('positive');
       else flashCredits('neutral');
     }
-    const net = payout - crossyState.bet;
     setStatus(crossyStatus, message, tone);
     logEvent('Crossy Run', message, net);
+    showResultModal({
+      game: 'Crossy Run',
+      bet,
+      payout,
+      message,
+      tone,
+    });
     crossyState.bet = 0;
   }
 
@@ -1210,17 +1354,24 @@
       horse.barEl.style.width = `${horse.progress}%`;
     });
 
+    const bet = horseState.bet;
+    const net = payout - bet;
     if (payout > 0) {
       credits += payout;
       updateCredits();
-      const net = payout - horseState.bet;
       if (net > 0) flashCredits('positive');
       else flashCredits('neutral');
     }
 
-    const net = payout - horseState.bet;
     setStatus(horseStatus, message, tone);
     logEvent('Neon Derby', message, net);
+    showResultModal({
+      game: 'Neon Derby',
+      bet,
+      payout,
+      message,
+      tone,
+    });
     horseState.bet = 0;
   }
 
@@ -1432,8 +1583,9 @@
       plinkoPuckEl.classList.add('is-active');
     }
 
-    const payout = Math.round(plinkoState.bet * multiplier);
-    const net = payout - plinkoState.bet;
+    const bet = plinkoState.bet;
+    const payout = Math.round(bet * multiplier);
+    const net = payout - bet;
     if (payout > 0) {
       credits += payout;
       updateCredits();
@@ -1456,6 +1608,13 @@
 
     setStatus(plinkoStatus, message, tone);
     logEvent('Quantum Plinko', message, net);
+    showResultModal({
+      game: 'Quantum Plinko',
+      bet,
+      payout,
+      message,
+      tone,
+    });
 
     plinkoState.animating = false;
     plinkoState.bet = 0;
@@ -1470,17 +1629,30 @@
     const sceneEl = plinkoBoardEl.closest('.plinko-scene');
     if (!sceneEl) return;
     const slots = Array.from(plinkoBoardEl.querySelectorAll('.plinko-slot'));
-    const slot = slots[index];
-    if (!slot) return;
-    const slotRect = slot.getBoundingClientRect();
+    if (slots.length === 0) return;
     const sceneRect = sceneEl.getBoundingClientRect();
+    const slotRects = slots.map(slotEl => slotEl.getBoundingClientRect());
+    const slotCenters = slotRects.map(rect => rect.left + rect.width / 2 - sceneRect.left);
+    const targetCenter = slotCenters[index] ?? slotCenters[slotCenters.length - 1];
+    const entryIndex = plinkoState.path[0] ?? Math.floor(slots.length / 2);
+    const startCenter = slotCenters[entryIndex] ?? slotCenters[Math.floor(slotCenters.length / 2)];
+    const midPoint =
+      slotCenters.length % 2 === 0
+        ? (slotCenters[slotCenters.length / 2 - 1] + slotCenters[slotCenters.length / 2]) / 2
+        : slotCenters[Math.floor(slotCenters.length / 2)];
     const maxSteps = Math.max(plinkoState.path.length - 1, 1);
-    const leftPx = slotRect.left + slotRect.width / 2 - sceneRect.left;
+    const progress = Math.min(step / maxSteps, 1);
+    const eased = Math.pow(progress, 1.25);
+    const centerTarget = midPoint + (targetCenter - midPoint) * eased;
+    const leftPx = startCenter + (centerTarget - startCenter) * eased;
+    const previousIndex = step > 0 ? plinkoState.path[step - 1] : entryIndex;
+    const direction = clamp(index - previousIndex, -1, 1);
+    const wobble = direction * 12 * (1 - eased);
     const baseTop = sceneRect.height * 0.12;
     const travel = sceneRect.height * 0.7;
-    const topPx = baseTop + travel * (step / maxSteps);
+    const topPx = baseTop + travel * progress;
     plinkoPuckEl.classList.add('is-active');
-    plinkoPuckEl.style.left = `${leftPx}px`;
+    plinkoPuckEl.style.left = `${leftPx + wobble}px`;
     plinkoPuckEl.style.top = `${topPx}px`;
   }
 
@@ -1546,8 +1718,55 @@
     });
   }
 
+  if (crashAutoBtn) {
+    crashAutoBtn.addEventListener('click', () => {
+      if (crashState.autoEnabled) {
+        crashState.autoEnabled = false;
+        updateCrashAutoButton();
+        setStatus(crashStatus, 'Auto cash disabled. Manual flight ready.', 'neutral');
+        return;
+      }
+      const defaultTarget = crashState.autoTarget >= 1.1 ? crashState.autoTarget.toFixed(2) : '2.00';
+      const input = window.prompt('Auto cash out at multiplier (min 1.10x)', defaultTarget);
+      if (input === null) return;
+      const target = Number(input);
+      if (!Number.isFinite(target) || target < 1.1) {
+        setStatus(crashStatus, 'Auto cash target must be at least 1.10x.', 'negative');
+        return;
+      }
+      crashState.autoTarget = Number(target.toFixed(2));
+      crashState.autoEnabled = true;
+      updateCrashAutoButton();
+      setStatus(crashStatus, `Auto cash primed for ${crashState.autoTarget.toFixed(2)}x.`, 'positive');
+    });
+  }
+
   if (minesStartBtn) minesStartBtn.addEventListener('click', startMinesRound);
   if (minesCashOutBtn) minesCashOutBtn.addEventListener('click', cashOutMines);
+  if (minesAutoBtn) {
+    minesAutoBtn.addEventListener('click', () => {
+      if (minesState.autoEnabled) {
+        minesState.autoEnabled = false;
+        updateMinesAutoButton();
+        setStatus(minesStatus, 'Auto cash disabled. Trust your instincts.', 'neutral');
+        return;
+      }
+      const defaultTarget = minesState.autoTarget > 0 ? minesState.autoTarget.toFixed(2) : '1.50';
+      const input = window.prompt('Auto cash out when multiplier reaches...', defaultTarget);
+      if (input === null) return;
+      const target = Number(input);
+      if (!Number.isFinite(target) || target < 1.05) {
+        setStatus(minesStatus, 'Pick at least a 1.05x multiplier for auto cash.', 'negative');
+        return;
+      }
+      minesState.autoTarget = Number(target.toFixed(2));
+      minesState.autoEnabled = true;
+      updateMinesAutoButton();
+      const tone = minesState.active ? 'positive' : 'neutral';
+      setStatus(minesStatus, `Auto cash primed for ${minesState.autoTarget.toFixed(2)}x.`, tone);
+    });
+  }
+
   if (minesGridEl) {
     buildMinesGrid();
     minesGridEl.addEventListener('click', handleMinesCellClick);
@@ -1565,6 +1784,16 @@
   if (horseCheerBtn) horseCheerBtn.addEventListener('click', cheerHorse);
 
   if (plinkoDropBtn) plinkoDropBtn.addEventListener('click', dropPlinko);
+
+  if (resultModalCloseBtn) resultModalCloseBtn.addEventListener('click', hideResultModal);
+  if (resultModalBackdropEl) resultModalBackdropEl.addEventListener('click', hideResultModal);
+  if (resultModalEl) {
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        hideResultModal();
+      }
+    });
+  }
 
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {

@@ -16,6 +16,7 @@
       <a class="main-nav__link" href="index.html">Home</a>
       <a class="main-nav__link" href="casino.html">Casino Floor</a>
       <a class="main-nav__link main-nav__link--active" href="online-casino.html">Arcade Lounge</a>
+      <a class="main-nav__link" href="skill-games.html">Skill Games</a>
     </nav>
     <div class="player-panel">
       <span class="player-panel__label">Credits</span>
@@ -116,7 +117,10 @@
                 <span>Bet amount</span>
                 <input type="number" id="crashBet" min="20" step="20" value="40">
               </label>
-              <button class="btn btn--primary btn--glow btn--wide" id="crashButton">Launch</button>
+              <div class="button-row">
+                <button class="btn btn--primary btn--glow btn--wide" id="crashButton">Launch</button>
+                <button class="btn btn--ghost btn--wide" type="button" id="crashAutoCash">Auto cash out</button>
+              </div>
             </div>
           </div>
           <p class="game-panel__status" id="crashStatus" data-status>Ready for launch.</p>
@@ -159,6 +163,7 @@
               <div class="button-row">
                 <button class="btn btn--primary btn--glow btn--wide" id="minesStart">Arm grid</button>
                 <button class="btn btn--ghost btn--wide" id="minesCashOut" disabled>Cash out</button>
+                <button class="btn btn--ghost btn--wide" type="button" id="minesAutoCash" disabled>Auto cash out</button>
               </div>
             </div>
           </div>
@@ -339,6 +344,15 @@
   <footer class="site-footer">
     <p>Arcade simulations use fictional credits only. No real wagers occur.</p>
   </footer>
+
+  <div class="result-modal" id="resultModal" aria-hidden="true">
+    <div class="result-modal__backdrop" id="resultModalBackdrop"></div>
+    <div class="result-modal__dialog" role="dialog" aria-modal="true" aria-live="polite">
+      <h2 class="result-modal__title" id="resultModalTitle">Round complete</h2>
+      <p class="result-modal__message" id="resultModalMessage">Outcome details will appear here.</p>
+      <button class="btn btn--primary btn--wide" type="button" id="resultModalClose">Continue</button>
+    </div>
+  </div>
 
   <script src="online.js"></script>
 </body>

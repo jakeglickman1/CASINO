@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurora Arcade · Skill Games</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page page--skill">
+  <header class="site-header">
+    <div class="brand">
+      <a class="brand__link" href="index.html">Aurora Arcade</a>
+      <span class="brand__tagline">Skill challenges</span>
+    </div>
+    <nav class="main-nav">
+      <a class="main-nav__link" href="index.html">Home</a>
+      <a class="main-nav__link" href="casino.html">Casino Floor</a>
+      <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
+      <a class="main-nav__link main-nav__link--active" href="skill-games.html">Skill Games</a>
+    </nav>
+    <div class="player-panel">
+      <span class="player-panel__label">Credits</span>
+      <span class="player-panel__value" id="skillCredits">0</span>
+      <button class="btn btn--ghost" type="button" id="skillReset">Reset</button>
+    </div>
+  </header>
+
+  <main class="content content--wide">
+    <section class="section skill-hero">
+      <header class="section__header section__header--tight">
+        <h1>Skill games hub</h1>
+        <p>
+          Pick a challenge, place a wager, and test your reflexes, memory, and accuracy across arcade-inspired arenas.
+          Every victory feeds back into your shared bankroll.
+        </p>
+      </header>
+      <div class="skill-grid" id="skillGrid">
+        <article class="skill-card" data-game="reflex">
+          <span class="skill-card__badge">Fast</span>
+          <h3 class="skill-card__title">Reflex Reactor</h3>
+          <p class="skill-card__meta">Stop the reactor the instant it flashes green.</p>
+          <span class="skill-card__payout">Up to 3× payout</span>
+        </article>
+        <article class="skill-card" data-game="memory">
+          <span class="skill-card__badge">Memory</span>
+          <h3 class="skill-card__title">Nebula Sequence</h3>
+          <p class="skill-card__meta">Watch the pattern and replay it perfectly.</p>
+          <span class="skill-card__payout">Up to 2.8× payout</span>
+        </article>
+        <article class="skill-card" data-game="math">
+          <span class="skill-card__badge">Logic</span>
+          <h3 class="skill-card__title">Quantum Sums</h3>
+          <p class="skill-card__meta">Solve three equations before the timer collapses.</p>
+          <span class="skill-card__payout">Up to 3× payout</span>
+        </article>
+        <article class="skill-card" data-game="target">
+          <span class="skill-card__badge">Accuracy</span>
+          <h3 class="skill-card__title">Target Lock</h3>
+          <p class="skill-card__meta">Tag the roaming drone six times before it slips away.</p>
+          <span class="skill-card__payout">Up to 2.5× payout</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="skill-stage" id="skillStage">
+      <div class="skill-stage__header">
+        <button class="btn btn--ghost" type="button" id="skillBack" hidden>Back to game hub</button>
+        <div>
+          <h2 id="skillGameTitle">Choose a skill challenge</h2>
+          <p id="skillGameBlurb">Select a game card to load its arena and view the betting rules.</p>
+        </div>
+      </div>
+      <div class="skill-stage__layout">
+        <div class="skill-stage__main">
+          <div class="skill-placeholder" id="skillPlaceholder">
+            <p>
+              Browse the hub above and pick a challenge to get started. Each mini game offers its own betting thresholds
+              and payout table so you can stake credits based on your confidence.
+            </p>
+            <ul class="skill-tips">
+              <li>Reflex Reactor rewards lightning-fast reactions—tap after the signal.</li>
+              <li>Nebula Sequence gets tougher every round; keep the pattern locked in your mind.</li>
+              <li>Quantum Sums stacks increasingly tough math prompts against a ticking clock.</li>
+              <li>Target Lock is a precision clicker—track the drone and rack up hits.</li>
+            </ul>
+          </div>
+
+          <div class="skill-module" id="moduleReflex" hidden>
+            <div class="skill-module__wrap">
+              <div class="skill-module__arena">
+                <div class="reflex-display" id="reflexDisplay">Arm the reactor to begin.</div>
+                <button class="btn btn--primary btn--wide" type="button" id="reflexTap">Tap!</button>
+              </div>
+              <aside class="skill-module__panel">
+                <div class="form form--stacked">
+                  <label class="form__field">
+                    <span>Bet amount</span>
+                    <input type="number" id="reflexBet" min="20" step="10" value="40">
+                  </label>
+                  <button class="btn btn--primary btn--glow btn--wide" type="button" id="reflexStart">Arm reactor</button>
+                </div>
+                <p class="skill-status" id="reflexStatus" data-status>Stake at least 20 credits, then wait for the reactor to flash green.</p>
+                <div class="skill-payouts">
+                  <h4>Payout tiers</h4>
+                  <ul>
+                    <li><strong>≤ 250ms</strong> · 3.0× stake</li>
+                    <li><strong>≤ 400ms</strong> · 2.0× stake</li>
+                    <li><strong>≤ 550ms</strong> · 1.2× stake</li>
+                    <li><strong>Else</strong> · Reactor absorbs the wager</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <div class="skill-module" id="moduleMemory" hidden>
+            <div class="skill-module__wrap">
+              <div class="skill-module__arena">
+                <div class="memory-grid" id="memoryPads">
+                  <button class="memory-pad" type="button" data-index="0">A</button>
+                  <button class="memory-pad" type="button" data-index="1">B</button>
+                  <button class="memory-pad" type="button" data-index="2">C</button>
+                  <button class="memory-pad" type="button" data-index="3">D</button>
+                </div>
+              </div>
+              <aside class="skill-module__panel">
+                <div class="form form--stacked">
+                  <label class="form__field">
+                    <span>Bet amount</span>
+                    <input type="number" id="memoryBet" min="25" step="5" value="35">
+                  </label>
+                  <button class="btn btn--primary btn--glow btn--wide" type="button" id="memoryStart">Start sequence</button>
+                </div>
+                <p class="skill-status" id="memoryStatus" data-status>Press start to watch the nebula flash. Repeat it perfectly to win.</p>
+                <div class="skill-payouts">
+                  <h4>Payout tiers</h4>
+                  <ul>
+                    <li><strong>Perfect run</strong> · 2.8× stake</li>
+                    <li><strong>Miss</strong> · Pattern collapses, wager lost</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <div class="skill-module" id="moduleMath" hidden>
+            <div class="skill-module__wrap">
+              <div class="skill-module__arena">
+                <div class="math-display">
+                  <div class="math-question">
+                    <span class="math-question__label">Solve</span>
+                    <span class="math-question__value" id="mathQuestion">--</span>
+                  </div>
+                  <div class="math-progress">
+                    <span>Remaining</span>
+                    <strong id="mathRemaining">3</strong>
+                  </div>
+                  <div class="math-timer">
+                    <span>Timer</span>
+                    <strong id="mathTimer">25s</strong>
+                  </div>
+                </div>
+                <div class="math-input">
+                  <input type="number" id="mathAnswer" placeholder="Your answer" disabled>
+                  <button class="btn btn--primary" type="button" id="mathSubmit" disabled>Submit</button>
+                </div>
+              </div>
+              <aside class="skill-module__panel">
+                <div class="form form--stacked">
+                  <label class="form__field">
+                    <span>Bet amount</span>
+                    <input type="number" id="mathBet" min="20" step="5" value="30">
+                  </label>
+                  <button class="btn btn--primary btn--glow btn--wide" type="button" id="mathStart">Launch quiz</button>
+                </div>
+                <p class="skill-status" id="mathStatus" data-status>Race the clock through three equations. Higher accuracy boosts your payout.</p>
+                <div class="skill-payouts">
+                  <h4>Payout tiers</h4>
+                  <ul>
+                    <li><strong>3 correct</strong> · 3.0× stake</li>
+                    <li><strong>2 correct</strong> · 1.8× stake</li>
+                    <li><strong>1 correct</strong> · Stake returned</li>
+                    <li><strong>0 correct / timeout</strong> · Wager lost</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <div class="skill-module" id="moduleTarget" hidden>
+            <div class="skill-module__wrap">
+              <div class="skill-module__arena">
+                <div class="target-hud">
+                  <div class="target-hud__stat">
+                    <span>Hits</span>
+                    <strong id="targetHits">0</strong>
+                  </div>
+                  <div class="target-hud__stat">
+                    <span>Timer</span>
+                    <strong id="targetTime">20s</strong>
+                  </div>
+                </div>
+                <div class="target-arena" id="targetArena">
+                  <button class="target-dot" type="button" id="targetDot" aria-label="Target"></button>
+                </div>
+              </div>
+              <aside class="skill-module__panel">
+                <div class="form form--stacked">
+                  <label class="form__field">
+                    <span>Bet amount</span>
+                    <input type="number" id="targetBet" min="25" step="5" value="40">
+                  </label>
+                  <button class="btn btn--primary btn--glow btn--wide" type="button" id="targetStart">Deploy drone</button>
+                </div>
+                <p class="skill-status" id="targetStatus" data-status>Click the roaming drone six times before the timer runs out.</p>
+                <div class="skill-payouts">
+                  <h4>Payout tiers</h4>
+                  <ul>
+                    <li><strong>6+ hits</strong> · 2.5× stake</li>
+                    <li><strong>4-5 hits</strong> · 1.4× stake</li>
+                    <li><strong>≤ 3 hits</strong> · Wager lost</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+
+        <aside class="skill-log" id="skillLogPanel">
+          <h3>Recent skill plays</h3>
+          <div class="skill-log__entries" id="skillLog"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Arcade simulations use fictional credits only. No real wagers occur.</p>
+  </footer>
+
+  <script src="skill-games.js"></script>
+</body>
+</html>

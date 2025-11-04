@@ -7,23 +7,36 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="page page--casino">
-  <header class="site-header">
-    <div class="brand">
-      <a class="brand__link" href="index.html">Aurora Arcade</a>
-      <span class="brand__tagline">Casino floor</span>
+  <header class="site-header" data-site-header>
+    <div class="site-header__brand-group">
+      <div class="brand">
+        <a class="brand__link" href="index.html">Aurora Arcade</a>
+        <span class="brand__tagline">Retro floor</span>
+      </div>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="siteNav">
+        <span class="sr-only">Open site navigation</span>
+        <span class="nav-toggle__icon" aria-hidden="true">
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+        </span>
+      </button>
     </div>
-    <nav class="main-nav">
-      <a class="main-nav__link" href="index.html">Home</a>
-      <a class="main-nav__link main-nav__link--active" href="casino.html">Casino Floor</a>
-      <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
-      <a class="main-nav__link" href="skill-games.html">Skill Games</a>
-    </nav>
-    <div class="player-panel">
-      <span class="player-panel__label">Credits</span>
-      <span class="player-panel__value" id="creditsDisplay">0</span>
-      <button class="btn btn--ghost" id="resetBankroll">Reset</button>
+    <div class="site-header__tray" id="siteNav" data-nav-tray>
+      <nav class="main-nav" aria-label="Primary">
+        <a class="main-nav__link" href="index.html">Home</a>
+        <a class="main-nav__link main-nav__link--active" href="casino.html">Casino Floor</a>
+        <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
+        <a class="main-nav__link" href="skill-games.html">Skill Games</a>
+      </nav>
+      <div class="player-panel">
+        <span class="player-panel__label">Credits</span>
+        <span class="player-panel__value" id="creditsDisplay">0</span>
+        <button class="btn btn--ghost" id="resetBankroll">Reset</button>
+      </div>
     </div>
   </header>
+  <div class="nav-overlay" data-nav-overlay hidden></div>
 
   <main class="content content--wide">
     <section class="section section--challenge-nav section--floor-nav">
@@ -67,8 +80,15 @@
       <div class="game-section__inner">
         <div class="game-stage">
           <div class="game-stage__header">
-            <h3>Lucky Spin Slots</h3>
-            <p>Expanded reels and a glowing cabinet put the focus on streaks. Land pairs to stay alive or line up triples for dramatic payouts.</p>
+            <span class="game-stage__tag">Slots</span>
+            <div class="game-stage__title">
+              <h3>Lucky Spin Slots</h3>
+              <button class="game-help" type="button" data-help-target="slotsHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Lucky Spin Slots</span>
+              </button>
+            </div>
+            <p>Expanded reels and a glowing cabinet put the focus on streaks. Land pairs to stay alive or align triples for dramatic synthwave payouts.</p>
           </div>
           <div class="slots-viewport">
             <div class="slots__reels">
@@ -89,7 +109,19 @@
               <button class="btn btn--primary btn--glow btn--wide" id="spinButton">Spin reels</button>
             </div>
           </div>
-          <p class="game-panel__status" id="slotsStatus" data-status>Set your stake and spin the reels.</p>
+          <div class="game-panel__overlay" id="slotsHelp" role="dialog" aria-modal="true" aria-labelledby="slotsHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="slotsHelpTitle">How to play</h4>
+              <p>Set a stake, press Spin, and watch reels settle from left to right. Matching symbols refill or grow the shared bankroll.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Pairs keep your run alive; triples award the neon payout shown in the log.</li>
+                <li>7️⃣ streaks escalate quickly—keep spinning while you can cover the wager.</li>
+                <li>Use reset only if you want to restore the shared bankroll to its default.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="slotsStatus" data-status role="status" aria-live="polite">Set your stake and spin the reels.</p>
         </aside>
       </div>
     </section>
@@ -98,8 +130,15 @@
       <div class="game-section__inner">
         <div class="game-stage">
           <div class="game-stage__header">
-            <h3>High Card Duel</h3>
-            <p>Oversized holo cards snap into view as you challenge the dealer to a single-card flip.</p>
+            <span class="game-stage__tag">Face-off</span>
+            <div class="game-stage__title">
+              <h3>High Card Duel</h3>
+              <button class="game-help" type="button" data-help-target="duelHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play High Card Duel</span>
+              </button>
+            </div>
+            <p>Oversized holo cards snap into view as you challenge the dealer to a single-card flip lit by retro LEDs.</p>
           </div>
           <div class="duel-viewport">
             <div class="card-duel__hands">
@@ -125,7 +164,19 @@
               <button class="btn btn--primary btn--glow btn--wide" id="duelButton">Draw cards</button>
             </div>
           </div>
-          <p class="game-panel__status" id="duelStatus" data-status>Wager credits to flip for high card.</p>
+          <div class="game-panel__overlay" id="duelHelp" role="dialog" aria-modal="true" aria-labelledby="duelHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="duelHelpTitle">How to play</h4>
+              <p>Set your stake, press Challenge, and compare single cards. Highest rank wins; ties push the wager back.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Face cards outrank numbers; aces sit on top. Suits never break ties.</li>
+                <li>Use the shared bankroll wisely—each loss pulls directly from the global credits.</li>
+                <li>Need a fresh start? Reset restores the bankroll to its default value.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="duelStatus" data-status role="status" aria-live="polite">Wager credits to flip for high card.</p>
         </aside>
       </div>
     </section>
@@ -134,7 +185,14 @@
       <div class="game-section__inner">
         <div class="game-stage">
           <div class="game-stage__header">
-            <h3>Aurora Roulette</h3>
+            <span class="game-stage__tag">Wheel</span>
+            <div class="game-stage__title">
+              <h3>Aurora Roulette</h3>
+              <button class="game-help" type="button" data-help-target="rouletteHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Aurora Roulette</span>
+              </button>
+            </div>
             <p>A full neon wheel spins beneath a crystal pointer. Alternate reds and blacks orbit while zero glows in cyan.</p>
           </div>
           <div class="roulette-viewport">
@@ -171,7 +229,19 @@
               </div>
             </form>
           </div>
-          <p class="game-panel__status" id="rouletteStatus" data-status>Pick a color and spin the wheel.</p>
+          <div class="game-panel__overlay" id="rouletteHelp" role="dialog" aria-modal="true" aria-labelledby="rouletteHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="rouletteHelpTitle">How to play</h4>
+              <p>Choose a bet, pick red, black, or the cyan zero, then launch the spin. Results add or subtract from the shared bankroll instantly.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Red and black pay 2×; the neon zero pays 8× but is far rarer.</li>
+                <li>Adjust the stake quickly between spins to manage risk across the session.</li>
+                <li>Resetting here resets the shared bankroll everywhere.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="rouletteStatus" data-status role="status" aria-live="polite">Pick a color and spin the wheel.</p>
         </aside>
       </div>
     </section>
@@ -180,7 +250,14 @@
       <div class="game-section__inner">
         <div class="game-stage">
           <div class="game-stage__header">
-            <h3>Neon Craps</h3>
+            <span class="game-stage__tag">Dice</span>
+            <div class="game-stage__title">
+              <h3>Neon Craps</h3>
+              <button class="game-help" type="button" data-help-target="crapsHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Neon Craps</span>
+              </button>
+            </div>
             <p>Every roll echoes across a glowing rail. Establish the point, then hit it again before seven shows.</p>
           </div>
           <div class="craps-viewport">
@@ -207,7 +284,19 @@
               <button class="btn btn--primary btn--glow btn--wide" id="crapsRoll">Throw dice</button>
             </div>
           </div>
-          <p class="game-panel__status" id="crapsStatus" data-status>Come-out roll the bones.</p>
+          <div class="game-panel__overlay" id="crapsHelp" role="dialog" aria-modal="true" aria-labelledby="crapsHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="crapsHelpTitle">How to play</h4>
+              <p>Place a wager, roll the dice, and chase the point. Win the come-out roll with a 7 or 11, lose on 2, 3, or 12.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Establish a point number, then keep rolling until you match it again to cash in.</li>
+                <li>Rolling a seven after the point wipes the bet—manage stakes to preserve the shared bankroll.</li>
+                <li>Reset at any time to restore the default credits for all lounges.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="crapsStatus" data-status role="status" aria-live="polite">Come-out roll the bones.</p>
         </aside>
       </div>
     </section>
@@ -216,7 +305,14 @@
       <div class="game-section__inner">
         <div class="game-stage">
           <div class="game-stage__header">
-            <h3>Cyber Baccarat</h3>
+            <span class="game-stage__tag">Table</span>
+            <div class="game-stage__title">
+              <h3>Cyber Baccarat</h3>
+              <button class="game-help" type="button" data-help-target="baccaratHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Cyber Baccarat</span>
+              </button>
+            </div>
             <p>Animated holo-cards land on a split table while banker and player totals pulse at the front edge.</p>
           </div>
           <div class="baccarat-viewport">
@@ -253,7 +349,19 @@
               <button class="btn btn--primary btn--glow" id="baccaratDeal">Deal round</button>
             </div>
           </div>
-          <p class="game-panel__status" id="baccaratStatus" data-status>Bet the shoe and let it ride.</p>
+          <div class="game-panel__overlay" id="baccaratHelp" role="dialog" aria-modal="true" aria-labelledby="baccaratHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="baccaratHelpTitle">How to play</h4>
+              <p>Select Player, Banker, or Tie, then deal two-card hands. Totals closest to nine win.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Face cards and tens count as zero; aces count as one.</li>
+                <li>Banker and player may draw a third card automatically—no extra input needed.</li>
+                <li>Keep an eye on the shared bankroll; ties pay 8× but are rare.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="baccaratStatus" data-status role="status" aria-live="polite">Bet the shoe and let it ride.</p>
         </aside>
       </div>
     </section>
@@ -262,7 +370,14 @@
       <div class="game-section__inner">
         <div class="game-stage">
           <div class="game-stage__header">
-            <h3>Blackjack 21</h3>
+            <span class="game-stage__tag">Hands</span>
+            <div class="game-stage__title">
+              <h3>Blackjack 21</h3>
+              <button class="game-help" type="button" data-help-target="blackjackHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Blackjack 21</span>
+              </button>
+            </div>
             <p>A curved neon table frames both hands while totals illuminate based on who’s ahead.</p>
           </div>
           <div class="blackjack-viewport">
@@ -293,7 +408,19 @@
               <button class="btn btn--ghost" id="blackjackStand" disabled>Stand</button>
             </div>
           </div>
-          <p class="game-panel__status" id="blackjackStatus" data-status>Enter a bet and press deal to start a hand.</p>
+          <div class="game-panel__overlay" id="blackjackHelp" role="dialog" aria-modal="true" aria-labelledby="blackjackHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="blackjackHelpTitle">How to play</h4>
+              <p>Place a bet, press Deal, and chase 21 without busting. Hit for more cards or Stand to hold your total.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Blackjacks pay 3:2; dealer stands on 17. No splits or doubles in this prototype.</li>
+                <li>The shared bankroll updates on every hand—pace your bets to stay in the session.</li>
+                <li>Reset only when you want the default credits for every lounge.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="blackjackStatus" data-status role="status" aria-live="polite">Enter a bet and press deal to start a hand.</p>
         </aside>
       </div>
     </section>
@@ -302,7 +429,14 @@
       <div class="game-section__inner">
         <div class="game-stage">
           <div class="game-stage__header">
-            <h3>Poker Draw</h3>
+            <span class="game-stage__tag">Draw</span>
+            <div class="game-stage__title">
+              <h3>Poker Draw</h3>
+              <button class="game-help" type="button" data-help-target="pokerHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Poker Draw</span>
+              </button>
+            </div>
             <p>Stretch out the showdown against Vega and Rigel with wide card rows and illuminated rank labels.</p>
           </div>
           <div class="poker-viewport">
@@ -341,7 +475,19 @@
               </div>
             </div>
           </div>
-          <p class="game-panel__status" id="pokerStatus" data-status>Deal a hand, hold favorites, draw once, then reveal.</p>
+          <div class="game-panel__overlay" id="pokerHelp" role="dialog" aria-modal="true" aria-labelledby="pokerHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="pokerHelpTitle">How to play</h4>
+              <p>Bet, deal five cards, hold keepers, and draw once before the reveal. Best five-card hand wins the pot.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Click cards to toggle holds before you draw.</li>
+                <li>Opponents auto-reveal after your draw—watch ranks to see how the shared bankroll moves.</li>
+                <li>Use reset to restock credits for every lounge if you want a clean slate.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="pokerStatus" data-status role="status" aria-live="polite">Deal a hand, hold favorites, draw once, then reveal.</p>
         </aside>
       </div>
     </section>
@@ -354,7 +500,8 @@
             <p>Track the latest twenty rounds across every table to monitor hot streaks.</p>
           </div>
           <div class="log-viewport">
-            <div class="history" id="history"></div>
+            <h4 class="sr-only" id="historyHeading">Session log</h4>
+            <div class="history" id="history" role="log" aria-live="polite" aria-labelledby="historyHeading"></div>
           </div>
         </div>
       </div>
@@ -362,12 +509,33 @@
   </main>
 
   <footer class="site-footer">
-    <p>&copy; <span id="year"></span> Aurora Arcade. All simulations use fictional credits only.</p>
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span class="site-footer__logo">Aurora Arcade</span>
+        <p class="site-footer__mission">
+          We build neon-soaked casino prototypes that balance theatrical flair with accessible, player-first UX.
+        </p>
+      </div>
+      <div class="site-footer__group">
+        <h4 class="site-footer__heading">Stay Connected</h4>
+        <ul class="site-footer__links">
+          <li><a class="site-footer__link" href="https://dribbble.com" target="_blank" rel="noopener">Dribbble</a></li>
+          <li><a class="site-footer__link" href="https://behance.net" target="_blank" rel="noopener">Behance</a></li>
+          <li><a class="site-footer__link" href="https://twitter.com" target="_blank" rel="noopener">X / Twitter</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__group">
+        <h4 class="site-footer__heading">Book A Walkthrough</h4>
+        <a class="btn btn--ghost btn--wide" href="mailto:hello@auroraarcade.dev">hello@auroraarcade.dev</a>
+        <p class="site-footer__cta-copy">Reach out for partnerships, UX critiques, or to spin up a custom table.</p>
+      </div>
+    </div>
+    <div class="site-footer__meta">
+      <span>&copy; <span id="year"></span> Aurora Arcade. All simulations use fictional credits only.</span>
+    </div>
   </footer>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
-  <script src="app.js"></script>
+  <script type="module" src="site.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

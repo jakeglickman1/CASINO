@@ -7,31 +7,43 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="page page--skill">
-  <header class="site-header">
-    <div class="brand">
-      <a class="brand__link" href="index.html">Aurora Arcade</a>
-      <span class="brand__tagline">Skill challenges</span>
+  <header class="site-header" data-site-header>
+    <div class="site-header__brand-group">
+      <div class="brand">
+        <a class="brand__link" href="index.html">Aurora Arcade</a>
+        <span class="brand__tagline">Skill gauntlet</span>
+      </div>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="siteNav">
+        <span class="sr-only">Open site navigation</span>
+        <span class="nav-toggle__icon" aria-hidden="true">
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+        </span>
+      </button>
     </div>
-    <nav class="main-nav">
-      <a class="main-nav__link" href="index.html">Home</a>
-      <a class="main-nav__link" href="casino.html">Casino Floor</a>
-      <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
-      <a class="main-nav__link main-nav__link--active" href="skill-games.html">Skill Games</a>
-    </nav>
-    <div class="player-panel">
-      <span class="player-panel__label">Credits</span>
-      <span class="player-panel__value" id="skillCredits">0</span>
-      <button class="btn btn--ghost" type="button" id="skillReset">Reset</button>
+    <div class="site-header__tray" id="siteNav" data-nav-tray>
+      <nav class="main-nav" aria-label="Primary">
+        <a class="main-nav__link" href="index.html">Home</a>
+        <a class="main-nav__link" href="casino.html">Casino Floor</a>
+        <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
+        <a class="main-nav__link main-nav__link--active" href="skill-games.html">Skill Games</a>
+      </nav>
+      <div class="player-panel">
+        <span class="player-panel__label">Credits</span>
+        <span class="player-panel__value" id="skillCredits">0</span>
+        <button class="btn btn--ghost" type="button" id="skillReset">Reset</button>
+      </div>
     </div>
   </header>
+  <div class="nav-overlay" data-nav-overlay hidden></div>
 
   <main class="content content--wide">
     <section class="section skill-hero">
       <header class="section__header section__header--tight">
-        <h1>Skill games hub</h1>
+        <h1>Synth skill gauntlet</h1>
         <p>
-          Pick a challenge, place a wager, and test your reflexes, memory, and accuracy across arcade-inspired arenas.
-          Every victory feeds back into your shared bankroll.
+          Queue up reflex, logic, and precision trials inside neon arenas. Every clear pumps credits back into the shared bankroll.
         </p>
       </header>
       <div class="skill-grid" id="skillGrid">
@@ -59,6 +71,12 @@
           <p class="skill-card__meta">Tag the roaming drone six times before it slips away.</p>
           <span class="skill-card__payout">Up to 2.5× payout</span>
         </article>
+        <article class="skill-card" data-game="rhythm">
+          <span class="skill-card__badge">Timing</span>
+          <h3 class="skill-card__title">Pulse Rhythm</h3>
+          <p class="skill-card__meta">Strike the beat the moment the pulse flashes alive.</p>
+          <span class="skill-card__payout">Up to 3.2× payout</span>
+        </article>
       </div>
     </section>
 
@@ -66,6 +84,7 @@
       <div class="skill-stage__header">
         <button class="btn btn--ghost" type="button" id="skillBack" hidden>Back to game hub</button>
         <div>
+          <span class="skill-stage__badge">Training deck</span>
           <h2 id="skillGameTitle">Choose a skill challenge</h2>
           <p id="skillGameBlurb">Select a game card to load its arena and view the betting rules.</p>
         </div>
@@ -92,12 +111,28 @@
                 <button class="btn btn--primary btn--wide" type="button" id="reflexTap">Tap!</button>
               </div>
               <aside class="skill-module__panel">
+                <button class="game-help" type="button" data-help-target="reflexHelp" aria-expanded="false">
+                  <span class="game-help__icon" aria-hidden="true">?</span>
+                  <span class="sr-only">How to play Reflex Reactor</span>
+                </button>
                 <div class="form form--stacked">
                   <label class="form__field">
                     <span>Bet amount</span>
                     <input type="number" id="reflexBet" min="20" step="10" value="40">
                   </label>
                   <button class="btn btn--primary btn--glow btn--wide" type="button" id="reflexStart">Arm reactor</button>
+                </div>
+                <div class="game-panel__overlay" id="reflexHelp" role="dialog" aria-modal="true" aria-labelledby="reflexHelpTitle" hidden>
+                  <div class="game-panel__overlay-inner">
+                    <h4 id="reflexHelpTitle">How to play</h4>
+                    <p>Arm the reactor, wait for the flash, then tap as quickly as you can. Faster reactions pay larger multipliers.</p>
+                    <ul class="game-panel__overlay-list">
+                      <li>Don’t tap early—false starts forfeit the stake.</li>
+                      <li>Use practice runs with smaller wagers to warm up.</li>
+                      <li>Reset restores the shared bankroll for the entire hub.</li>
+                    </ul>
+                    <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+                  </div>
                 </div>
                 <p class="skill-status" id="reflexStatus" data-status>Stake at least 20 credits, then wait for the reactor to flash green.</p>
                 <div class="skill-payouts">
@@ -124,12 +159,28 @@
                 </div>
               </div>
               <aside class="skill-module__panel">
+                <button class="game-help" type="button" data-help-target="memoryHelp" aria-expanded="false">
+                  <span class="game-help__icon" aria-hidden="true">?</span>
+                  <span class="sr-only">How to play Memory Matrix</span>
+                </button>
                 <div class="form form--stacked">
                   <label class="form__field">
                     <span>Bet amount</span>
                     <input type="number" id="memoryBet" min="25" step="5" value="35">
                   </label>
                   <button class="btn btn--primary btn--glow btn--wide" type="button" id="memoryStart">Start sequence</button>
+                </div>
+                <div class="game-panel__overlay" id="memoryHelp" role="dialog" aria-modal="true" aria-labelledby="memoryHelpTitle" hidden>
+                  <div class="game-panel__overlay-inner">
+                    <h4 id="memoryHelpTitle">How to play</h4>
+                    <p>Study the flashing pattern, then repeat it perfectly. Each round adds a new tile.</p>
+                    <ul class="game-panel__overlay-list">
+                      <li>Stay calm—mistakes end the run and cost the stake.</li>
+                      <li>Use smaller wagers to get comfortable before chasing streaks.</li>
+                      <li>Reset returns the shared bankroll to its default value.</li>
+                    </ul>
+                    <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+                  </div>
                 </div>
                 <p class="skill-status" id="memoryStatus" data-status>Press start to watch the nebula flash. Repeat it perfectly to win.</p>
                 <div class="skill-payouts">
@@ -166,12 +217,28 @@
                 </div>
               </div>
               <aside class="skill-module__panel">
+                <button class="game-help" type="button" data-help-target="mathHelp" aria-expanded="false">
+                  <span class="game-help__icon" aria-hidden="true">?</span>
+                  <span class="sr-only">How to play Quantum Sums</span>
+                </button>
                 <div class="form form--stacked">
                   <label class="form__field">
                     <span>Bet amount</span>
                     <input type="number" id="mathBet" min="20" step="5" value="30">
                   </label>
                   <button class="btn btn--primary btn--glow btn--wide" type="button" id="mathStart">Launch quiz</button>
+                </div>
+                <div class="game-panel__overlay" id="mathHelp" role="dialog" aria-modal="true" aria-labelledby="mathHelpTitle" hidden>
+                  <div class="game-panel__overlay-inner">
+                    <h4 id="mathHelpTitle">How to play</h4>
+                    <p>Solve three rapid-fire equations before the timer collapses. Accuracy drives the payout.</p>
+                    <ul class="game-panel__overlay-list">
+                      <li>Submit answers quickly; skipping or timing out burns the wager.</li>
+                      <li>Use smaller bets to warm up before committing larger stakes.</li>
+                      <li>Reset refreshes the shared bankroll for everyone.</li>
+                    </ul>
+                    <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+                  </div>
                 </div>
                 <p class="skill-status" id="mathStatus" data-status>Race the clock through three equations. Higher accuracy boosts your payout.</p>
                 <div class="skill-payouts">
@@ -205,12 +272,28 @@
                 </div>
               </div>
               <aside class="skill-module__panel">
+                <button class="game-help" type="button" data-help-target="targetHelp" aria-expanded="false">
+                  <span class="game-help__icon" aria-hidden="true">?</span>
+                  <span class="sr-only">How to play Target Lock</span>
+                </button>
                 <div class="form form--stacked">
                   <label class="form__field">
                     <span>Bet amount</span>
                     <input type="number" id="targetBet" min="25" step="5" value="40">
                   </label>
                   <button class="btn btn--primary btn--glow btn--wide" type="button" id="targetStart">Deploy drone</button>
+                </div>
+                <div class="game-panel__overlay" id="targetHelp" role="dialog" aria-modal="true" aria-labelledby="targetHelpTitle" hidden>
+                  <div class="game-panel__overlay-inner">
+                    <h4 id="targetHelpTitle">How to play</h4>
+                    <p>Start the drone and click the moving target as many times as you can before the timer ends.</p>
+                    <ul class="game-panel__overlay-list">
+                      <li>Higher accuracy earns better multipliers; missing wastes precious seconds.</li>
+                      <li>Practice with smaller stakes to learn the drone’s movement pattern.</li>
+                      <li>Reset tops up the shared bankroll when you need a fresh start.</li>
+                    </ul>
+                    <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+                  </div>
                 </div>
                 <p class="skill-status" id="targetStatus" data-status>Click the roaming drone six times before the timer runs out.</p>
                 <div class="skill-payouts">
@@ -224,20 +307,94 @@
               </aside>
             </div>
           </div>
+
+          <div class="skill-module" id="moduleRhythm" hidden>
+            <div class="skill-module__wrap">
+              <div class="skill-module__arena">
+                <div class="rhythm-display">
+                  <span class="rhythm-pulse" id="rhythmPulseIndicator"></span>
+                  <p class="rhythm-text" id="rhythmPrompt">Press start to enter the beat grid.</p>
+                </div>
+                <div class="rhythm-controls">
+                  <button class="btn btn--primary btn--wide" type="button" id="rhythmStrike" disabled>Strike the beat</button>
+                </div>
+              </div>
+              <aside class="skill-module__panel">
+                <button class="game-help" type="button" data-help-target="rhythmHelp" aria-expanded="false">
+                  <span class="game-help__icon" aria-hidden="true">?</span>
+                  <span class="sr-only">How to play Pulse Rhythm</span>
+                </button>
+                <div class="form form--stacked">
+                  <label class="form__field">
+                    <span>Bet amount</span>
+                    <input type="number" id="rhythmBet" min="20" step="5" value="30">
+                  </label>
+                  <button class="btn btn--primary btn--glow btn--wide" type="button" id="rhythmStart">Start sequence</button>
+                </div>
+                <div class="game-panel__overlay" id="rhythmHelp" role="dialog" aria-modal="true" aria-labelledby="rhythmHelpTitle" hidden>
+                  <div class="game-panel__overlay-inner">
+                    <h4 id="rhythmHelpTitle">How to play</h4>
+                    <p>Start the beat and strike the button precisely when the pulse glows. Maintain timing across three strikes.</p>
+                    <ul class="game-panel__overlay-list">
+                      <li>Early or late hits break the combo and forfeit the round.</li>
+                      <li>Listen for the audio cue or watch the pulse indicator to stay on tempo.</li>
+                      <li>Reset restores the shared bankroll when you want a new run.</li>
+                    </ul>
+                    <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+                  </div>
+                </div>
+                <p class="skill-status" id="rhythmStatus" data-status>Press start then tap when the pulse glows.</p>
+                <div class="skill-payouts">
+                  <h4>Payout tiers</h4>
+                  <ul>
+                    <li><strong>3 perfect hits</strong> · 3.2× stake</li>
+                    <li><strong>2 hits</strong> · 1.6× stake</li>
+                    <li><strong>1 hit</strong> · Stake returned</li>
+                    <li><strong>0 hits</strong> · Wager lost</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
         </div>
 
         <aside class="skill-log" id="skillLogPanel">
           <h3>Recent skill plays</h3>
-          <div class="skill-log__entries" id="skillLog"></div>
+          <h4 class="sr-only" id="skillLogHeading">Skill game log</h4>
+          <div class="skill-log__entries" id="skillLog" role="log" aria-live="polite" aria-labelledby="skillLogHeading"></div>
         </aside>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>Arcade simulations use fictional credits only. No real wagers occur.</p>
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span class="site-footer__logo">Aurora Arcade</span>
+        <p class="site-footer__mission">
+          We build neon-soaked casino prototypes that balance theatrical flair with accessible, player-first UX.
+        </p>
+      </div>
+      <div class="site-footer__group">
+        <h4 class="site-footer__heading">Stay Connected</h4>
+        <ul class="site-footer__links">
+          <li><a class="site-footer__link" href="https://dribbble.com" target="_blank" rel="noopener">Dribbble</a></li>
+          <li><a class="site-footer__link" href="https://behance.net" target="_blank" rel="noopener">Behance</a></li>
+          <li><a class="site-footer__link" href="https://twitter.com" target="_blank" rel="noopener">X / Twitter</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__group">
+        <h4 class="site-footer__heading">Book A Walkthrough</h4>
+        <a class="btn btn--ghost btn--wide" href="mailto:hello@auroraarcade.dev">hello@auroraarcade.dev</a>
+        <p class="site-footer__cta-copy">Reach out for partnerships, UX critiques, or to spin up a custom table.</p>
+      </div>
+    </div>
+    <div class="site-footer__meta">
+      <span>&copy; <span id="year"></span> Aurora Arcade. Skill runs are experimental prototypes.</span>
+    </div>
   </footer>
 
-  <script src="skill-games.js"></script>
+  <script type="module" src="site.js"></script>
+  <script type="module" src="skill-games.js"></script>
 </body>
 </html>

@@ -7,28 +7,49 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="page page--landing">
-  <header class="site-header">
-    <div class="brand">
-      <a class="brand__link" href="index.html">Aurora Arcade</a>
-      <span class="brand__tagline">Interactive casino playground</span>
+  <header class="site-header" data-site-header>
+    <div class="site-header__brand-group">
+      <div class="brand">
+        <a class="brand__link" href="index.html">Aurora Arcade</a>
+        <span class="brand__tagline">Retro-futurist play lounge</span>
+      </div>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="siteNav">
+        <span class="sr-only">Open site navigation</span>
+        <span class="nav-toggle__icon" aria-hidden="true">
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+        </span>
+      </button>
     </div>
-    <nav class="main-nav">
-      <a class="main-nav__link" href="index.html">Home</a>
-      <a class="main-nav__link" href="casino.html">Casino Floor</a>
-      <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
-      <a class="main-nav__link" href="skill-games.html">Skill Games</a>
-    </nav>
+    <div class="site-header__tray" id="siteNav" data-nav-tray>
+      <nav class="main-nav" aria-label="Primary">
+        <a class="main-nav__link main-nav__link--active" href="index.html">Home</a>
+        <a class="main-nav__link" href="casino.html">Casino Floor</a>
+        <a class="main-nav__link" href="online-casino.html">Arcade Lounge</a>
+        <a class="main-nav__link" href="skill-games.html">Skill Games</a>
+      </nav>
+    </div>
   </header>
+  <div class="nav-overlay" data-nav-overlay hidden></div>
 
   <main class="content">
     <section class="hero">
       <div class="hero__copy">
-        <p class="eyebrow">Welcome traveller</p>
-        <h1>Feel the thrill of a neon casino without leaving your chair.</h1>
+        <p class="eyebrow">Synthwave lounge now boarding</p>
+        <h1>Step into a throwback casino dressed in modern neon.</h1>
         <p class="hero__lead">
-          Aurora Arcade is a handcrafted demo experience featuring quick-play mini games,
-          crisp visuals, and a relaxed credit system that lets you experiment freely.
+          Aurora Arcade celebrates the golden era of arcade glitz—scanline lighting, responsive neon,
+          and a sandbox bankroll that keeps the focus on fun experimentation.
         </p>
+        <div class="hero__ticker" aria-live="polite">
+          <span class="hero__ticker-label">Live marquee</span>
+          <ul class="hero__ticker-items">
+            <li class="hero__ticker-item"><span aria-hidden="true">✨</span> 80s-inspired HUD overlays</li>
+            <li class="hero__ticker-item"><span aria-hidden="true">🎰</span> Instant feedback mini games</li>
+            <li class="hero__ticker-item"><span aria-hidden="true">🕹️</span> Shared credits across lounges</li>
+          </ul>
+        </div>
         <div class="hero__actions">
           <a class="btn btn--primary" href="casino.html">Enter the casino floor</a>
           <a class="btn btn--ghost" href="online-casino.html">Browse arcade lounge</a>
@@ -37,12 +58,21 @@
       </div>
       <div class="hero__panel">
         <div class="hero__card">
-          <span class="hero__stat-label">Daily spins played</span>
+          <span class="hero__stat-label">Daily spins</span>
           <span class="hero__stat-value">42,180</span>
+          <span class="hero__stat-footnote">+318 vs retro average</span>
         </div>
         <div class="hero__card hero__card--accent">
-          <p class="hero__quote">“It feels like a futuristic lounge — slick, simple, and fun.”</p>
+          <p class="hero__quote">“It feels like a synth-laced time machine. The interactivity just sings.”</p>
           <span class="hero__attribution">— The Aurora Team</span>
+        </div>
+        <div class="hero__card hero__card--pulse">
+          <span class="hero__stat-label">Tonight’s vibe</span>
+          <span class="hero__meter">
+            <span class="hero__meter-bar" style="width: 78%"></span>
+            <span class="hero__meter-glow"></span>
+          </span>
+          <span class="hero__stat-footnote">Synthwave saturation 78%</span>
         </div>
       </div>
     </section>
@@ -50,20 +80,20 @@
     <section class="section">
       <header class="section__header">
         <h2>Why Aurora?</h2>
-        <p>We rebuilt every page from scratch to focus on clarity, accessibility, and lightweight fun.</p>
+        <p>We remixed the interface into a clean, retro skyline—accessible layouts, glowing accents, and playfully tactile feedback.</p>
       </header>
       <div class="grid grid--features">
         <article class="feature-card">
           <h3>Instant pacing</h3>
-          <p>Every interaction responds immediately with punchy feedback, so you stay in the flow.</p>
+          <p>Responsive animations and arcade sound cues keep every spin, draw, and bet feeling alive.</p>
         </article>
         <article class="feature-card">
-          <h3>Thoughtful design</h3>
-          <p>We paired a calm color palette with bold typography for a readable, modern presentation.</p>
+          <h3>Throwback aesthetic</h3>
+          <p>Scanline gradients, parallax glows, and pixel-inspired typography honour the glory days of neon casinos.</p>
         </article>
         <article class="feature-card">
           <h3>Sandbox safe</h3>
-          <p>Play with virtual credits only. No logins, no tracking, just a creative coding showcase.</p>
+          <p>Virtual credits only. No logins, no pressure—just an expressive space to riff on interactive ideas.</p>
         </article>
       </div>
     </section>
@@ -71,38 +101,59 @@
     <section class="section section--split">
       <div class="section__media">
         <div class="tilt-card">
-          <span class="tilt-card__icon">🎲</span>
-          <span class="tilt-card__label">Preview</span>
-          <p class="tilt-card__text">Shuffle, spin, and test your luck with our trio of casual mini games.</p>
+          <span class="tilt-card__icon" aria-hidden="true">🌆</span>
+          <span class="tilt-card__label">Neon skyline</span>
+          <p class="tilt-card__text">Glide between lounges, leaderboards, and mini games in a single glowing UI.</p>
         </div>
       </div>
       <div class="section__body">
         <h2>Step onto the digital felt</h2>
         <p>
-          The casino floor features Lucky Spin slots, High Card Duel, and a simple color bet roulette.
-          Everything is tuned for quick rounds, making it easy to demo or extend with your own ideas.
+          The casino floor features Lucky Spin slots, High Card Duel, and a colour-wheel roulette table.
+          Each surface reimagines classic casino UX with vibrant feedback loops and tactile controls.
         </p>
         <ul class="list">
-          <li>1000 credits to start every visit</li>
-          <li>Responsive layout for desktop and mobile</li>
-          <li>Readable history log to track your streaks</li>
+          <li>1,000 credits every visit—shareable across every lounge</li>
+          <li>Responsive layouts with layered parallax backgrounds</li>
+          <li>Readable history timeline with neon highlights</li>
         </ul>
       </div>
     </section>
 
     <section class="section section--cta">
       <h2>Ready to explore?</h2>
-      <p>Drop into the casino, then share your favourite moments with friends.</p>
+      <p>Queue the synth soundtrack, call a friend, and dive into our neon playground.</p>
       <a class="btn btn--primary" href="casino.html">Launch Aurora Arcade</a>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>&copy; <span id="year"></span> Aurora Arcade. Built as a creative coding experiment.</p>
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span class="site-footer__logo">Aurora Arcade</span>
+        <p class="site-footer__mission">
+          We build neon-soaked casino prototypes that balance theatrical flair with accessible, player-first UX.
+        </p>
+      </div>
+      <div class="site-footer__group">
+        <h4 class="site-footer__heading">Stay Connected</h4>
+        <ul class="site-footer__links">
+          <li><a class="site-footer__link" href="https://dribbble.com" target="_blank" rel="noopener">Dribbble</a></li>
+          <li><a class="site-footer__link" href="https://behance.net" target="_blank" rel="noopener">Behance</a></li>
+          <li><a class="site-footer__link" href="https://twitter.com" target="_blank" rel="noopener">X / Twitter</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__group">
+        <h4 class="site-footer__heading">Book A Walkthrough</h4>
+        <a class="btn btn--ghost btn--wide" href="mailto:hello@auroraarcade.dev">hello@auroraarcade.dev</a>
+        <p class="site-footer__cta-copy">Reach out for partnerships, UX critiques, or to spin up a custom table.</p>
+      </div>
+    </div>
+    <div class="site-footer__meta">
+      <span>&copy; <span id="year"></span> Aurora Arcade. All experiences use fictional credits.</span>
+    </div>
   </footer>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
+  <script type="module" src="site.js"></script>
 </body>
 </html>

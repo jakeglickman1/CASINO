@@ -1,12 +1,47 @@
-(function () {
-  const STARTING_CREDITS = 1000;
-  let credits = STARTING_CREDITS;
+import { createBankroll } from './core/bankroll.js';
+import {
+  flashIndicator,
+  setStatus as applyStatus,
+  logEvent as recordEvent,
+  attachConfirmAction,
+  showToast,
+} from './core/ui.js';
 
-  const creditsDisplay = document.getElementById('creditsDisplay');
-  if (!creditsDisplay) return;
+const STARTING_CREDITS = 1000;
+
+const creditsDisplay = document.getElementById('creditsDisplay');
+if (!creditsDisplay) {
+  console.warn('Casino floor UI not found.');
+} else {
+  let credits = STARTING_CREDITS;
 
   const resetBtn = document.getElementById('resetBankroll');
   const historyEl = document.getElementById('history');
+
+  const bankroll = createBankroll({
+    startingCredits: STARTING_CREDITS,
+    onChange: (balance, { tone, isInitial } = {}) => {
+      credits = balance;
+      creditsDisplay.textContent = balance.toLocaleString();
+      if (!isInitial && tone) {
+        flashIndicator(creditsDisplay, tone);
+      }
+    },
+    onSync: ({ balance }) => {
+      showToast(`Bankroll synced at ${balance.toLocaleString()} credits`, { tone: 'neutral' });
+    },
+  });
+  credits = bankroll.balance;
+
+  const slotSymbols = ['🍒', '🍋', '⭐', '7️⃣', '💎', '🍀'];
+  const slotSymbolLabels = new Map([
+    ['🍒', 'Cherry'],
+    ['🍋', 'Lemon'],
+    ['⭐', 'Star'],
+    ['7️⃣', 'Seven'],
+    ['💎', 'Diamond'],
+    ['🍀', 'Clover'],
+  ]);
 
   const slotsBetInput = document.getElementById('slotsBet');
   const spinButton = document.getElementById('spinButton');
@@ -16,6 +51,13 @@
     document.getElementById('reel2'),
     document.getElementById('reel3'),
   ];
+
+  slotReels.forEach(reel => {
+    if (!reel) return;
+    reel.setAttribute('role', 'img');
+    const label = slotSymbolLabels.get(reel.textContent.trim());
+    if (label) reel.setAttribute('aria-label', label);
+  });
 
   const duelBetInput = document.getElementById('duelBet');
   const duelButton = document.getElementById('duelButton');
@@ -67,7 +109,6 @@
   const pokerAi2RankEl = document.getElementById('pokerAi2Rank');
   const pokerStatus = document.getElementById('pokerStatus');
 
-  const slotSymbols = ['🍒', '🍋', '⭐', '7️⃣', '💎', '🍀'];
   const SUITS = ['♠', '♥', '♦', '♣'];
   const RANKS = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'];
   const RANK_ORDER = new Map([
@@ -121,49 +162,20 @@
     bet: 0,
   };
 
-  function updateCreditsDisplay() {
-    creditsDisplay.textContent = credits.toLocaleString();
+  function updateCreditsDisplay(options) {
+    bankroll.setBalance(credits, options);
   }
 
   function flashCredits(tone) {
-    creditsDisplay.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    if (tone) {
-      const className =
-        tone === 'positive' ? 'status-positive' : tone === 'negative' ? 'status-negative' : 'status-neutral';
-      creditsDisplay.classList.add(className);
-    }
-    void creditsDisplay.offsetWidth;
-    creditsDisplay.classList.add('pulse');
-    setTimeout(() => {
-      creditsDisplay.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    }, 650);
+    flashIndicator(creditsDisplay, tone);
   }
 
   function setStatus(element, message, tone = 'neutral') {
-    if (!element) return;
-    element.textContent = message;
-    element.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    const className =
-      tone === 'positive' ? 'status-positive' : tone === 'negative' ? 'status-negative' : 'status-neutral';
-    element.classList.add(className);
-    void element.offsetWidth;
-    element.classList.add('pulse');
-    setTimeout(() => element.classList.remove('pulse'), 650);
+    applyStatus(element, message, tone);
   }
 
-  function logEvent(game, message, net = 0) {
-    if (!historyEl) return;
-    const entry = document.createElement('div');
-    entry.className = 'history-entry';
-    const netLabel =
-      Number.isFinite(net) && net !== 0 ? ` · Net ${net >= 0 ? '+' : ''}${net.toLocaleString()} credits` : '';
-    entry.innerHTML = `<strong>${game}</strong><span>${message}${netLabel}</span>`;
-    historyEl.prepend(entry);
-    entry.classList.add('pulse');
-    setTimeout(() => entry.classList.remove('pulse'), 700);
-    while (historyEl.children.length > 20) {
-      historyEl.removeChild(historyEl.lastChild);
-    }
+  function logEvent(game, message, net = 0, tone) {
+    recordEvent(historyEl, { game, message, net, tone });
   }
 
   function applyStake(amount) {
@@ -559,6 +571,11 @@
       if (!reel) return;
       reel.classList.remove('is-win');
       reel.textContent = result[idx];
+      reel.setAttribute('role', 'img');
+      const symbolLabel = slotSymbolLabels.get(result[idx]);
+      if (symbolLabel) {
+        reel.setAttribute('aria-label', symbolLabel);
+      }
       reel.classList.add('is-spinning');
       setTimeout(() => reel.classList.remove('is-spinning'), 600);
     });
@@ -1351,22 +1368,26 @@
   if (pokerRevealBtn) pokerRevealBtn.addEventListener('click', revealPoker);
 
   if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      credits = STARTING_CREDITS;
-      updateCreditsDisplay();
-      flashCredits('neutral');
-      resetDuelCards();
-      resetCrapsTable();
-      resetBaccaratUI();
-      rouletteRotation = 0;
-      if (rouletteWheelEl) rouletteWheelEl.style.transform = 'rotate(0deg)';
-      resetBlackjackUI();
-      resetBlackjackState();
-      setBlackjackControls(false);
-      resetPokerUI();
-      setPokerControls('idle');
-      resetStatusMessages();
-      logEvent('Bank', 'Bankroll reset to 1,000 credits.', 0);
+    attachConfirmAction(resetBtn, {
+      confirmLabel: 'Confirm reset',
+      onConfirm: () => {
+        bankroll.reset({ tone: 'neutral' });
+        credits = bankroll.balance;
+        flashCredits('neutral');
+        resetDuelCards();
+        resetCrapsTable();
+        resetBaccaratUI();
+        rouletteRotation = 0;
+        if (rouletteWheelEl) rouletteWheelEl.style.transform = 'rotate(0deg)';
+        resetBlackjackUI();
+        resetBlackjackState();
+        setBlackjackControls(false);
+        resetPokerUI();
+        setPokerControls('idle');
+        resetStatusMessages();
+        logEvent('Bank', 'Bankroll reset to 1,000 credits.', 0);
+        showToast('Bankroll reset to 1,000 credits.', { tone: 'neutral' });
+      },
     });
   }
 
@@ -1382,4 +1403,4 @@
   resetStatusMessages();
   updateCreditsDisplay();
   logEvent('Host', 'Welcome to Aurora Arcade. Your bankroll starts at 1,000 credits.', 0);
-})();
+}

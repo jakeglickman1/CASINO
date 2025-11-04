@@ -1,12 +1,37 @@
-(function () {
-  const STARTING_CREDITS = 1000;
-  let credits = STARTING_CREDITS;
+import { createBankroll } from './core/bankroll.js';
+import {
+  flashIndicator,
+  setStatus as applyStatus,
+  logEvent as recordEvent,
+  attachConfirmAction,
+  showToast,
+} from './core/ui.js';
 
-  const creditsDisplay = document.getElementById('onlineCredits');
-  if (!creditsDisplay) return;
+const STARTING_CREDITS = 1000;
+
+const creditsDisplay = document.getElementById('onlineCredits');
+if (!creditsDisplay) {
+  console.warn('Arcade lounge UI not found.');
+} else {
+  let credits = STARTING_CREDITS;
 
   const resetBtn = document.getElementById('onlineReset');
   const historyEl = document.getElementById('onlineHistory');
+
+  const bankroll = createBankroll({
+    startingCredits: STARTING_CREDITS,
+    onChange: (balance, { tone, isInitial } = {}) => {
+      credits = balance;
+      creditsDisplay.textContent = balance.toLocaleString();
+      if (!isInitial && tone) {
+        flashIndicator(creditsDisplay, tone);
+      }
+    },
+    onSync: ({ balance }) => {
+      showToast(`Bankroll synced at ${balance.toLocaleString()} credits`, { tone: 'neutral' });
+    },
+  });
+  credits = bankroll.balance;
 
   // Crash elements
   const crashBetInput = document.getElementById('crashBet');
@@ -85,11 +110,24 @@
   const memoryGridEl = document.getElementById('memoryGrid');
   const memoryRoundEl = document.getElementById('memoryRound');
   const memoryStreakEl = document.getElementById('memoryStreak');
+  const wheelBetInput = document.getElementById('wheelBet');
+  const wheelSpinBtn = document.getElementById('wheelSpin');
+  const wheelStatus = document.getElementById('wheelStatus');
+  const wheelDisc = document.getElementById('wheelDisc');
+  const wheelResultEl = document.getElementById('wheelResult');
+  const diceBetInput = document.getElementById('diceBet');
+  const dicePickSelect = document.getElementById('dicePick');
+  const diceRollBtn = document.getElementById('diceRoll');
+  const diceStatus = document.getElementById('diceStatus');
+  const diceTrayEl = document.getElementById('diceTray');
+  const diceTotalEl = document.getElementById('diceTotal');
+  const diceTargetEl = document.getElementById('diceTarget');
   const resultModalEl = document.getElementById('resultModal');
   const resultModalTitleEl = document.getElementById('resultModalTitle');
   const resultModalMessageEl = document.getElementById('resultModalMessage');
   const resultModalCloseBtn = document.getElementById('resultModalClose');
   const resultModalBackdropEl = document.getElementById('resultModalBackdrop');
+  const diceCubes = diceTrayEl ? Array.from(diceTrayEl.querySelectorAll('.dice-cube')) : [];
 
   const crashState = {
     active: false,
@@ -120,9 +158,9 @@
   };
 
   const HORSE_RUNNERS = [
-    { id: 'nova', name: 'Nova' },
-    { id: 'comet', name: 'Comet' },
-    { id: 'eclipse', name: 'Eclipse' },
+    { id: 'nova', name: 'Nova', color: '#5ef3ff', accent: '#2a77ff', glow: 'rgba(94, 243, 255, 0.4)' },
+    { id: 'comet', name: 'Comet', color: '#ff91f8', accent: '#ff5386', glow: 'rgba(255, 145, 248, 0.38)' },
+    { id: 'eclipse', name: 'Eclipse', color: '#ffd166', accent: '#ff8c42', glow: 'rgba(255, 209, 102, 0.32)' },
   ];
 
   const PLINKO_MULTIPLIERS = [5, 3.2, 2.2, 0.2, 0.2, 2.2, 3.2, 5];
@@ -135,6 +173,76 @@
     { x: 36, y: -225 },
   ];
   const MEMORY_GRID_SIZE = 16;
+  const WHEEL_SEGMENTS = [
+    { id: 'bust', label: 'Bust', display: 'Bust · 0x', multiplier: 0, weight: 62, start: 0, end: 223, tone: 'negative' },
+    {
+      id: 'even',
+      label: '1.4x Boost',
+      display: '1.4x Boost',
+      multiplier: 1.4,
+      weight: 20,
+      start: 223,
+      end: 295,
+      tone: 'positive',
+    },
+    {
+      id: 'double',
+      label: 'Double Win',
+      display: '2x Double',
+      multiplier: 2,
+      weight: 8,
+      start: 295,
+      end: 324,
+      tone: 'positive',
+    },
+    {
+      id: 'triple',
+      label: 'Triple Surge',
+      display: '3x Surge',
+      multiplier: 3,
+      weight: 5,
+      start: 324,
+      end: 342,
+      tone: 'positive',
+    },
+    {
+      id: 'five',
+      label: 'Fivefold Frenzy',
+      display: '5x Frenzy',
+      multiplier: 5,
+      weight: 3,
+      start: 342,
+      end: 352,
+      tone: 'positive',
+    },
+    {
+      id: 'ten',
+      label: 'Tenfold Stack',
+      display: '10x Stack',
+      multiplier: 10,
+      weight: 1,
+      start: 352,
+      end: 358,
+      tone: 'positive',
+    },
+    {
+      id: 'fortune',
+      label: 'Fortune Slice',
+      display: '15x Fortune',
+      multiplier: 15,
+      weight: 1,
+      start: 358,
+      end: 360,
+      tone: 'positive',
+    },
+  ];
+  const WHEEL_WEIGHT_TOTAL = WHEEL_SEGMENTS.reduce((sum, segment) => sum + segment.weight, 0);
+  const DICE_SYMBOLS = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  const DICE_PAYOUTS = {
+    high: 1.8,
+    low: 1.8,
+    triples: 13,
+  };
 
   const crossyState = {
     active: false,
@@ -184,49 +292,34 @@
     scriptedWin: false,
   };
 
+  const wheelState = {
+    spinning: false,
+    bet: 0,
+    rotation: 0,
+  };
+
+  const diceState = {
+    rolling: false,
+    bet: 0,
+    pick: 'high',
+  };
+
   // ---------------------------------------------------------------------------
   // Utility helpers
-  function updateCredits() {
-    creditsDisplay.textContent = credits.toLocaleString();
+  function updateCredits(options) {
+    bankroll.setBalance(credits, options);
   }
 
   function flashCredits(tone = 'neutral') {
-    creditsDisplay.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    const className =
-      tone === 'positive' ? 'status-positive' : tone === 'negative' ? 'status-negative' : 'status-neutral';
-    creditsDisplay.classList.add(className);
-    void creditsDisplay.offsetWidth;
-    creditsDisplay.classList.add('pulse');
-    setTimeout(() => {
-      creditsDisplay.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    }, 650);
+    flashIndicator(creditsDisplay, tone);
   }
 
   function setStatus(element, message, tone = 'neutral') {
-    if (!element) return;
-    element.textContent = message;
-    element.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    const className =
-      tone === 'positive' ? 'status-positive' : tone === 'negative' ? 'status-negative' : 'status-neutral';
-    element.classList.add(className);
-    void element.offsetWidth;
-    element.classList.add('pulse');
-    setTimeout(() => element.classList.remove('pulse'), 650);
+    applyStatus(element, message, tone);
   }
 
-  function logEvent(game, message, net = 0) {
-    if (!historyEl) return;
-    const entry = document.createElement('div');
-    entry.className = 'history-entry';
-    const netLabel =
-      Number.isFinite(net) && net !== 0 ? ` · Net ${net >= 0 ? '+' : ''}${net.toLocaleString()} credits` : '';
-    entry.innerHTML = `<strong>${game}</strong><span>${message}${netLabel}</span>`;
-    historyEl.prepend(entry);
-    entry.classList.add('pulse');
-    setTimeout(() => entry.classList.remove('pulse'), 700);
-    while (historyEl.children.length > 20) {
-      historyEl.removeChild(historyEl.lastChild);
-    }
+  function logEvent(game, message, net = 0, tone) {
+    recordEvent(historyEl, { game, message, net, tone });
   }
 
   function showResultModal({ game, bet = 0, payout = 0, tone = 'neutral', message = '' }) {
@@ -1288,19 +1381,33 @@
       const lane = document.createElement('div');
       lane.className = 'horse-lane';
       lane.dataset.id = runner.id;
+      lane.style.setProperty('--horse-color', runner.color);
+      lane.style.setProperty('--horse-accent', runner.accent);
+      lane.style.setProperty('--horse-glow', runner.glow);
 
       const label = document.createElement('span');
       label.className = 'horse-name';
       label.textContent = runner.name;
 
       const track = document.createElement('div');
-      track.className = 'crash-progress';
+      track.className = 'horse-lane__track';
 
       const bar = document.createElement('div');
-      bar.className = 'crash-progress__bar';
-      bar.style.width = '0%';
+      bar.className = 'horse-lane__progress';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'horse-avatar';
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.innerHTML = `
+        <span class="horse-avatar__body"></span>
+        <span class="horse-avatar__head"></span>
+        <span class="horse-avatar__ear"></span>
+        <span class="horse-avatar__tail"></span>
+        <span class="horse-avatar__shadow"></span>
+      `;
 
       track.appendChild(bar);
+      track.appendChild(avatar);
       lane.appendChild(label);
       lane.appendChild(track);
       horseTrackEl.appendChild(lane);
@@ -1312,6 +1419,7 @@
         momentum: 0,
         laneEl: lane,
         barEl: bar,
+        avatarEl: avatar,
       };
     });
   }
@@ -1335,6 +1443,10 @@
       horse.progress = 0;
       horse.momentum = 0;
       horse.barEl.style.width = '0%';
+      if (horse.avatarEl) {
+        horse.avatarEl.style.left = '0%';
+        horse.avatarEl.style.setProperty('--horse-lean', '-4deg');
+      }
       horse.laneEl.classList.remove('is-win', 'is-loss');
     });
     setHorseControls(false);
@@ -1352,6 +1464,11 @@
       const isWinner = winners.some(winner => winner.id === horse.id);
       horse.laneEl.classList.add(isWinner ? 'is-win' : 'is-loss');
       horse.barEl.style.width = `${horse.progress}%`;
+      if (horse.avatarEl) {
+        const offset = Math.min(horse.progress, 98);
+        horse.avatarEl.style.left = `${offset}%`;
+        horse.avatarEl.style.setProperty('--horse-lean', '0deg');
+      }
     });
 
     const bet = horseState.bet;
@@ -1395,6 +1512,10 @@
       horse.progress = 0;
       horse.momentum = 0.85 + Math.random() * 0.3;
       horse.barEl.style.width = '0%';
+      if (horse.avatarEl) {
+        horse.avatarEl.style.left = '0%';
+        horse.avatarEl.style.setProperty('--horse-lean', '-4deg');
+      }
       horse.laneEl.classList.remove('is-win', 'is-loss');
     });
 
@@ -1415,11 +1536,18 @@
       let finished = false;
       let lead = 0;
       horseState.horses.forEach(horse => {
+        const previous = horse.progress;
         const bias = horse.id === horseState.selection ? 1.05 : 1;
         const stride = (Math.random() * 5 + 3) * horse.momentum * bias;
-        horse.progress = Math.min(100, horse.progress + stride);
+        horse.progress = Math.min(100, previous + stride);
         if (horse.progress > lead) lead = horse.progress;
         horse.barEl.style.width = `${horse.progress}%`;
+        if (horse.avatarEl) {
+          const offset = Math.min(horse.progress, 98);
+          horse.avatarEl.style.left = `${offset}%`;
+          const lean = clamp((horse.progress - previous) * 0.6 - 4, -12, 10);
+          horse.avatarEl.style.setProperty('--horse-lean', `${lean}deg`);
+        }
         if (horse.progress >= 100) finished = true;
       });
 
@@ -1463,11 +1591,209 @@
 
     target.progress = Math.min(100, target.progress + 12);
     target.barEl.style.width = `${target.progress}%`;
+    if (target.avatarEl) {
+      const offset = Math.min(target.progress, 98);
+      target.avatarEl.style.left = `${offset}%`;
+      target.avatarEl.style.setProperty('--horse-lean', '10deg');
+      target.avatarEl.classList.add('is-cheered');
+      setTimeout(() => {
+        target.avatarEl?.classList.remove('is-cheered');
+      }, 420);
+    }
     horseState.cheerUsed = true;
     if (horseCheerBtn) horseCheerBtn.disabled = true;
 
     const name = HORSE_RUNNERS.find(runner => runner.id === horseState.selection)?.name || 'Your runner';
     setStatus(horseStatus, `${name} surges forward with the crowd behind them!`, 'positive');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fortune Wheel
+  function pickWheelSegment() {
+    let roll = Math.random() * WHEEL_WEIGHT_TOTAL;
+    for (const segment of WHEEL_SEGMENTS) {
+      if (roll < segment.weight) return segment;
+      roll -= segment.weight;
+    }
+    return WHEEL_SEGMENTS[0];
+  }
+
+  function formatWheelResult(segment) {
+    if (segment.multiplier <= 0) return segment.display;
+    const multiplierText =
+      Math.abs(segment.multiplier - Math.trunc(segment.multiplier)) < 0.001
+        ? `${segment.multiplier.toFixed(0)}x`
+        : `${segment.multiplier.toFixed(1)}x`;
+    return `${segment.label} · ${multiplierText}`;
+  }
+
+  function spinFortuneWheel() {
+    if (!wheelDisc || !wheelSpinBtn || !wheelBetInput) return;
+    if (wheelState.spinning) return;
+
+    const rawBet = Number(wheelBetInput.value);
+    if (!Number.isFinite(rawBet) || rawBet < 20) {
+      setStatus(wheelStatus, 'Minimum wheel stake is 20 credits.', 'negative');
+      return;
+    }
+
+    const bet = Math.round(rawBet / 10) * 10;
+    if (!applyStake(bet)) {
+      setStatus(wheelStatus, 'Not enough lounge credits for that spin.', 'negative');
+      return;
+    }
+
+    const segment = pickWheelSegment();
+    wheelState.spinning = true;
+    wheelState.bet = bet;
+    setStatus(wheelStatus, 'Wheel spinning...', 'neutral');
+    if (wheelResultEl) wheelResultEl.textContent = '--';
+
+    const midAngle = (segment.start + segment.end) / 2;
+    const spins = 2 + Math.floor(Math.random() * 3);
+    const finalRotation = wheelState.rotation + spins * 360 + (360 - midAngle);
+    wheelState.rotation = finalRotation % 360;
+    wheelDisc.style.setProperty('--wheel-rotation', `${finalRotation}deg`);
+
+    setTimeout(() => {
+      const payout = segment.multiplier > 0 ? Math.round(bet * segment.multiplier) : 0;
+      const net = payout - bet;
+      let message;
+      if (segment.multiplier > 0) {
+        message = `${segment.label} lands for ${payout.toLocaleString()} credits.`;
+        credits += payout;
+        updateCredits();
+        flashCredits(net > 0 ? 'positive' : 'neutral');
+      } else {
+        message = 'Bust wedge struck. Stake slips to the house.';
+        flashCredits('negative');
+      }
+
+      const tone = payout > 0 ? segment.tone : 'negative';
+      if (wheelResultEl) wheelResultEl.textContent = formatWheelResult(segment);
+      setStatus(wheelStatus, message, tone);
+      logEvent('Fortune Wheel', message, net);
+      showResultModal({
+        game: 'Fortune Wheel',
+        bet,
+        payout,
+        message,
+        tone,
+      });
+
+      wheelState.spinning = false;
+      wheelState.bet = 0;
+    }, 1300);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Nova Dice Duel
+  function getDiceTargetLabel(pick) {
+    if (pick === 'triples') return 'Triples (all dice match)';
+    if (pick === 'high') return 'High (11-18)';
+    return 'Low (3-10)';
+  }
+
+  function updateDiceTargetLabel() {
+    if (!diceTargetEl) return;
+    const pick = dicePickSelect ? dicePickSelect.value : diceState.pick;
+    diceTargetEl.textContent = getDiceTargetLabel(pick);
+  }
+
+  function rollNovaDice() {
+    if (!diceRollBtn || !diceBetInput || diceCubes.length === 0) return;
+    if (diceState.rolling) return;
+
+    const rawBet = Number(diceBetInput.value);
+    if (!Number.isFinite(rawBet) || rawBet < 25) {
+      setStatus(diceStatus, 'Minimum dice stake is 25 credits.', 'negative');
+      return;
+    }
+    const bet = Math.round(rawBet / 5) * 5;
+    if (!applyStake(bet)) {
+      setStatus(diceStatus, 'Not enough lounge credits for that roll.', 'negative');
+      return;
+    }
+
+    const pick = dicePickSelect ? dicePickSelect.value : diceState.pick;
+    diceState.rolling = true;
+    diceState.bet = bet;
+    diceState.pick = pick;
+    setStatus(diceStatus, 'Rolling the dice...', 'neutral');
+    if (diceTotalEl) diceTotalEl.textContent = '--';
+    updateDiceTargetLabel();
+
+    diceCubes.forEach(cube => {
+      cube.classList.add('is-rolling');
+      cube.textContent = DICE_SYMBOLS[Math.floor(Math.random() * DICE_SYMBOLS.length)];
+    });
+
+    setTimeout(() => {
+      const rolls = diceCubes.map(() => 1 + Math.floor(Math.random() * 6));
+      const sum = rolls.reduce((acc, value) => acc + value, 0);
+      const isTriple = rolls.every(value => value === rolls[0]);
+      const isHigh = sum >= 11;
+      const isLow = sum <= 10;
+
+      diceCubes.forEach((cube, index) => {
+        cube.classList.remove('is-rolling');
+        cube.textContent = DICE_SYMBOLS[rolls[index] - 1];
+      });
+
+      if (diceTotalEl) diceTotalEl.textContent = sum.toString();
+
+      let payout = 0;
+      let tone = 'negative';
+      let message;
+
+      if (pick === 'triples') {
+        if (isTriple) {
+          payout = Math.round(bet * DICE_PAYOUTS.triples);
+          tone = 'positive';
+          message = `Triple ${rolls[0]}! ${payout.toLocaleString()} credits splash into your balance.`;
+        } else {
+          message = `No triple — rolled ${rolls.join('-')}. Stake lost.`;
+        }
+      } else if (pick === 'high') {
+        if (isHigh) {
+          payout = Math.round(bet * DICE_PAYOUTS.high);
+          tone = 'positive';
+          message = `High wins with ${sum}. ${payout.toLocaleString()} credits awarded.`;
+        } else {
+          message = `Total ${sum}. High bet falls short and the house keeps the wager.`;
+        }
+      } else {
+        if (isLow) {
+          payout = Math.round(bet * DICE_PAYOUTS.low);
+          tone = 'positive';
+          message = `Low lands with ${sum}. ${payout.toLocaleString()} credits credited.`;
+        } else {
+          message = `Total ${sum}. Low bet misses and credits stay with the house.`;
+        }
+      }
+
+      const net = payout - bet;
+      if (payout > 0) {
+        credits += payout;
+        updateCredits();
+        flashCredits(net > 0 ? 'positive' : 'neutral');
+      } else {
+        flashCredits('negative');
+      }
+
+      setStatus(diceStatus, message, payout > 0 ? tone : 'negative');
+      logEvent('Nova Dice Duel', message, net);
+      showResultModal({
+        game: 'Nova Dice Duel',
+        bet,
+        payout,
+        message,
+        tone: payout > 0 ? tone : 'negative',
+      });
+
+      diceState.rolling = false;
+      diceState.bet = 0;
+    }, 620);
   }
 
   // ---------------------------------------------------------------------------
@@ -1780,6 +2106,10 @@
   if (crossyHopBtn) crossyHopBtn.addEventListener('click', hopCrossy);
   if (crossyBailBtn) crossyBailBtn.addEventListener('click', bailCrossy);
 
+  if (wheelSpinBtn) wheelSpinBtn.addEventListener('click', spinFortuneWheel);
+  if (diceRollBtn) diceRollBtn.addEventListener('click', rollNovaDice);
+  if (dicePickSelect) dicePickSelect.addEventListener('change', updateDiceTargetLabel);
+
   if (horseStartBtn) horseStartBtn.addEventListener('click', startHorseRace);
   if (horseCheerBtn) horseCheerBtn.addEventListener('click', cheerHorse);
 
@@ -1796,28 +2126,32 @@
   }
 
   if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      credits = STARTING_CREDITS;
-      updateCredits();
-      flashCredits('neutral');
-      clearInterval(crashState.timer);
-      crashState.timer = null;
-      crashState.active = false;
-      crashState.bet = 0;
-      crashState.crashPoint = 0;
-      crashState.maxDisplay = 4.5;
-      resetCrashVisuals();
-      resetMinesBoard();
-      resetLimboVisuals();
-      resetSkeeUI();
-      resetCrossyUI();
-      resetHorseUI();
-      resetPlinkoUI();
-      memoryState.round = 0;
-      memoryState.streak = 0;
-      resetMemoryUI();
-      resetStatusMessages();
-      logEvent('Lounge', 'Arcade bankroll reset to 1,000 credits.', 0);
+    attachConfirmAction(resetBtn, {
+      confirmLabel: 'Confirm reset',
+      onConfirm: () => {
+        bankroll.reset({ tone: 'neutral' });
+        credits = bankroll.balance;
+        flashCredits('neutral');
+        clearInterval(crashState.timer);
+        crashState.timer = null;
+        crashState.active = false;
+        crashState.bet = 0;
+        crashState.crashPoint = 0;
+        crashState.maxDisplay = 4.5;
+        resetCrashVisuals();
+        resetMinesBoard();
+        resetLimboVisuals();
+        resetSkeeUI();
+        resetCrossyUI();
+        resetHorseUI();
+        resetPlinkoUI();
+        memoryState.round = 0;
+        memoryState.streak = 0;
+        resetMemoryUI();
+        resetStatusMessages();
+        logEvent('Lounge', 'Arcade bankroll reset to 1,000 credits.', 0);
+        showToast('Arcade bankroll reset to 1,000 credits.', { tone: 'neutral' });
+      },
     });
   }
 
@@ -1831,6 +2165,14 @@
   resetPlinkoUI();
   resetMemoryUI();
   resetStatusMessages();
+  if (wheelDisc) wheelDisc.style.setProperty('--wheel-rotation', '0deg');
+  if (wheelResultEl) wheelResultEl.textContent = '--';
+  if (diceTotalEl) diceTotalEl.textContent = '--';
+  diceCubes.forEach(cube => {
+    cube.classList.remove('is-rolling');
+    cube.textContent = DICE_SYMBOLS[0];
+  });
+  updateDiceTargetLabel();
   updateCredits();
   logEvent('Host', 'Welcome to the Arcade Lounge. Your bankroll starts at 1,000 credits.', 0);
-})();
+}

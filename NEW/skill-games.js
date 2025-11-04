@@ -1,9 +1,19 @@
-(function () {
-  const STARTING_CREDITS = 1000;
-  let credits = STARTING_CREDITS;
+import { createBankroll } from './core/bankroll.js';
+import {
+  flashIndicator,
+  setStatus as applyStatus,
+  logEvent as recordEvent,
+  attachConfirmAction,
+  showToast,
+} from './core/ui.js';
 
-  const creditsDisplay = document.getElementById('skillCredits');
-  if (!creditsDisplay) return;
+const STARTING_CREDITS = 1000;
+
+const creditsDisplay = document.getElementById('skillCredits');
+if (!creditsDisplay) {
+  console.warn('Skill games UI not found.');
+} else {
+  let credits = STARTING_CREDITS;
 
   const resetBtn = document.getElementById('skillReset');
   const skillGrid = document.getElementById('skillGrid');
@@ -12,6 +22,21 @@
   const skillGameBlurb = document.getElementById('skillGameBlurb');
   const skillPlaceholder = document.getElementById('skillPlaceholder');
   const skillLog = document.getElementById('skillLog');
+
+  const bankroll = createBankroll({
+    startingCredits: STARTING_CREDITS,
+    onChange: (balance, { tone, isInitial } = {}) => {
+      credits = balance;
+      creditsDisplay.textContent = balance.toLocaleString();
+      if (!isInitial && tone) {
+        flashIndicator(creditsDisplay, tone);
+      }
+    },
+    onSync: ({ balance }) => {
+      showToast(`Bankroll synced at ${balance.toLocaleString()} credits`, { tone: 'neutral' });
+    },
+  });
+  credits = bankroll.balance;
 
   const reflexModule = document.getElementById('moduleReflex');
   const memoryModule = document.getElementById('moduleMemory');
@@ -45,6 +70,13 @@
   const targetTimeEl = document.getElementById('targetTime');
   const targetArena = document.getElementById('targetArena');
   const targetDot = document.getElementById('targetDot');
+  const rhythmModule = document.getElementById('moduleRhythm');
+  const rhythmBetInput = document.getElementById('rhythmBet');
+  const rhythmStartBtn = document.getElementById('rhythmStart');
+  const rhythmStrikeBtn = document.getElementById('rhythmStrike');
+  const rhythmStatus = document.getElementById('rhythmStatus');
+  const rhythmPrompt = document.getElementById('rhythmPrompt');
+  const rhythmPulseEl = document.getElementById('rhythmPulseIndicator');
 
   const DEFAULT_TITLE = 'Choose a skill challenge';
   const DEFAULT_BLURB = 'Select a game card to load its arena and view the betting rules.';
@@ -54,6 +86,7 @@
     memory: memoryStatus ? memoryStatus.textContent : 'Press start to watch the nebula flash. Repeat it perfectly to win.',
     math: mathStatus ? mathStatus.textContent : 'Race the clock through three equations. Higher accuracy boosts your payout.',
     target: targetStatus ? targetStatus.textContent : 'Click the roaming drone six times before the timer runs out.',
+    rhythm: rhythmStatus ? rhythmStatus.textContent : 'Press start then tap when the pulse glows.',
   };
 
   const GAMES = {
@@ -81,49 +114,30 @@
       element: targetModule,
       reset: resetTargetUI,
     },
+    rhythm: {
+      title: 'Pulse Rhythm',
+      blurb: 'Hit the beat exactly when the pulse turns electric to climb the payout ladder.',
+      element: rhythmModule,
+      reset: resetRhythmUI,
+    },
   };
 
   let currentGameId = null;
 
-  function updateCredits() {
-    creditsDisplay.textContent = credits.toLocaleString();
+  function updateCredits(options) {
+    bankroll.setBalance(credits, options);
   }
 
   function flashCredits(tone = 'neutral') {
-    creditsDisplay.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    const className =
-      tone === 'positive' ? 'status-positive' : tone === 'negative' ? 'status-negative' : 'status-neutral';
-    creditsDisplay.classList.add(className);
-    void creditsDisplay.offsetWidth;
-    creditsDisplay.classList.add('pulse');
-    setTimeout(() => {
-      creditsDisplay.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    }, 650);
+    flashIndicator(creditsDisplay, tone);
   }
 
   function setStatus(element, message, tone = 'neutral') {
-    if (!element) return;
-    element.textContent = message;
-    element.classList.remove('status-positive', 'status-negative', 'status-neutral', 'pulse');
-    const className =
-      tone === 'positive' ? 'status-positive' : tone === 'negative' ? 'status-negative' : 'status-neutral';
-    element.classList.add(className);
-    void element.offsetWidth;
-    element.classList.add('pulse');
-    setTimeout(() => element.classList.remove('pulse'), 650);
+    applyStatus(element, message, tone);
   }
 
-  function logEvent(game, message, net = 0) {
-    if (!skillLog) return;
-    const entry = document.createElement('div');
-    entry.className = 'skill-log__entry';
-    const netLabel =
-      Number.isFinite(net) && net !== 0 ? ` · Net ${net >= 0 ? '+' : ''}${net.toLocaleString()} credits` : '';
-    entry.innerHTML = `<strong>${game}</strong><span>${message}${netLabel}</span>`;
-    skillLog.prepend(entry);
-    while (skillLog.children.length > 12) {
-      skillLog.removeChild(skillLog.lastChild);
-    }
+  function logEvent(game, message, net = 0, tone) {
+    recordEvent(skillLog, { game, message, net, tone });
   }
 
   function applyStake(amount) {
@@ -631,6 +645,16 @@
     active: false,
   };
 
+  const rhythmState = {
+    bet: 0,
+    hits: 0,
+    round: 0,
+    active: false,
+    windowOpen: false,
+    pulseTimer: null,
+    windowTimer: null,
+  };
+
   function resetTargetUI({ refund = false, keepStatus = false } = {}) {
     clearInterval(targetState.timer);
     clearInterval(targetState.moveTimer);
@@ -756,6 +780,167 @@
     });
   }
 
+  function clearRhythmTimers() {
+    clearTimeout(rhythmState.pulseTimer);
+    clearTimeout(rhythmState.windowTimer);
+    rhythmState.pulseTimer = null;
+    rhythmState.windowTimer = null;
+  }
+
+  function resetRhythmUI({ refund = false, keepStatus = false } = {}) {
+    clearRhythmTimers();
+    if (refund && rhythmState.bet > 0) {
+      credits += rhythmState.bet;
+      updateCredits();
+      flashCredits('neutral');
+    }
+    rhythmState.bet = 0;
+    rhythmState.hits = 0;
+    rhythmState.round = 0;
+    rhythmState.active = false;
+    rhythmState.windowOpen = false;
+    if (rhythmStrikeBtn) rhythmStrikeBtn.disabled = true;
+    if (rhythmPulseEl) rhythmPulseEl.classList.remove('is-live');
+    if (rhythmPrompt) rhythmPrompt.textContent = 'Press start to enter the beat grid.';
+    if (!keepStatus) setStatus(rhythmStatus, DEFAULT_STATUS.rhythm, 'neutral');
+  }
+
+  function queueNextPulse() {
+    clearTimeout(rhythmState.pulseTimer);
+    if (!rhythmState.active) return;
+    rhythmState.round += 1;
+    if (rhythmState.round > 3) {
+      finishRhythmRound();
+      return;
+    }
+    if (rhythmPrompt) rhythmPrompt.textContent = `Pulse ${rhythmState.round}/3 incoming...`;
+    const delay = 600 + Math.random() * 900;
+    rhythmState.pulseTimer = setTimeout(() => {
+      if (rhythmState.active) openRhythmWindow();
+    }, delay);
+  }
+
+  function openRhythmWindow() {
+    clearTimeout(rhythmState.windowTimer);
+    if (!rhythmState.active) return;
+    rhythmState.windowOpen = true;
+    if (rhythmPulseEl) rhythmPulseEl.classList.add('is-live');
+    if (rhythmPrompt) rhythmPrompt.textContent = 'Strike now!';
+    if (rhythmStrikeBtn) rhythmStrikeBtn.disabled = false;
+    rhythmState.windowTimer = setTimeout(() => {
+      closeRhythmWindow(false);
+    }, 520);
+  }
+
+  function closeRhythmWindow(hit) {
+    clearTimeout(rhythmState.windowTimer);
+    rhythmState.windowTimer = null;
+    if (rhythmPulseEl) rhythmPulseEl.classList.remove('is-live');
+    if (rhythmStrikeBtn) rhythmStrikeBtn.disabled = true;
+    rhythmState.windowOpen = false;
+
+    if (!rhythmState.active) return;
+
+    if (!hit) {
+      setStatus(rhythmStatus, 'Missed the flash. Stay ready for the next pulse.', 'negative');
+    }
+
+    if (rhythmState.round >= 3) {
+      rhythmState.pulseTimer = setTimeout(() => {
+        if (rhythmState.active) finishRhythmRound();
+      }, 420);
+    } else {
+      rhythmState.pulseTimer = setTimeout(() => {
+        if (rhythmState.active) queueNextPulse();
+      }, 420);
+    }
+  }
+
+  function finishRhythmRound() {
+    clearRhythmTimers();
+    if (rhythmPulseEl) rhythmPulseEl.classList.remove('is-live');
+    if (rhythmStrikeBtn) rhythmStrikeBtn.disabled = true;
+    const bet = rhythmState.bet;
+    const hits = rhythmState.hits;
+    let payout = 0;
+    let tone = 'negative';
+    let message = `No beats captured. The house keeps your ${bet.toLocaleString()} credits.`;
+
+    if (hits >= 3) {
+      payout = Math.round(bet * 3.2);
+      tone = 'positive';
+      message = `Flawless rhythm! All three pulses hit for ${payout.toLocaleString()} credits.`;
+    } else if (hits === 2) {
+      payout = Math.round(bet * 1.6);
+      tone = 'positive';
+      message = `Solid groove. Two pulses locked for ${payout.toLocaleString()} credits.`;
+    } else if (hits === 1) {
+      payout = bet;
+      tone = 'neutral';
+      message = 'One pulse landed. Stake returned for holding the baseline.';
+    }
+
+    const net = payout - bet;
+    if (payout > 0) {
+      credits += payout;
+      updateCredits();
+      flashCredits(net > 0 ? 'positive' : 'neutral');
+    } else {
+      flashCredits('negative');
+    }
+
+    setStatus(rhythmStatus, message, tone);
+    logEvent('Pulse Rhythm', message, net);
+    showResultModal({
+      game: 'Pulse Rhythm',
+      bet,
+      payout,
+      message,
+      tone,
+    });
+
+    resetRhythmUI({ keepStatus: true });
+  }
+
+  function startRhythmRound() {
+    if (rhythmState.active) return;
+    const rawBet = Number(rhythmBetInput ? rhythmBetInput.value : 0);
+    if (!Number.isFinite(rawBet) || rawBet < 20) {
+      setStatus(rhythmStatus, 'Minimum pulse stake is 20 credits.', 'negative');
+      return;
+    }
+    const bet = Math.round(rawBet / 5) * 5;
+    if (!applyStake(bet)) {
+      setStatus(rhythmStatus, 'Not enough credits to sync with the pulse.', 'negative');
+      return;
+    }
+
+    resetRhythmUI({ keepStatus: true });
+    rhythmState.bet = bet;
+    rhythmState.active = true;
+    rhythmState.hits = 0;
+    rhythmState.round = 0;
+    setStatus(rhythmStatus, 'Pulse calibrating... watch for the flash.', 'neutral');
+    if (rhythmPrompt) rhythmPrompt.textContent = 'Stay ready... pulse is arming.';
+    queueNextPulse();
+  }
+
+  function handleRhythmStrike() {
+    if (!rhythmState.active) return;
+    if (!rhythmState.windowOpen) {
+      setStatus(rhythmStatus, 'Too early. Wait for the pulse to glow.', 'negative');
+      if (rhythmStrikeBtn) rhythmStrikeBtn.disabled = true;
+      return;
+    }
+    rhythmState.hits += 1;
+    setStatus(rhythmStatus, `Beat locked! ${rhythmState.hits} of ${rhythmState.round} pulses secured.`, 'positive');
+    closeRhythmWindow(true);
+  }
+
+  if (rhythmStartBtn) rhythmStartBtn.addEventListener('click', startRhythmRound);
+  if (rhythmStrikeBtn) rhythmStrikeBtn.addEventListener('click', handleRhythmStrike);
+
+
   if (skillGrid) {
     skillGrid.addEventListener('click', event => {
       const card = event.target.closest('.skill-card');
@@ -773,13 +958,17 @@
   }
 
   if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      credits = STARTING_CREDITS;
-      updateCredits();
-      flashCredits('neutral');
-      deactivateCurrentGame({ refund: false, silence: true });
-      Object.values(GAMES).forEach(game => game.reset({ refund: false, keepStatus: false }));
-      logEvent('Skill Hub', 'Bankroll reset to 1,000 credits.', 0);
+    attachConfirmAction(resetBtn, {
+      confirmLabel: 'Confirm reset',
+      onConfirm: () => {
+        bankroll.reset({ tone: 'neutral' });
+        credits = bankroll.balance;
+        flashCredits('neutral');
+        deactivateCurrentGame({ refund: false, silence: true });
+        Object.values(GAMES).forEach(game => game.reset({ refund: false, keepStatus: false }));
+        logEvent('Skill Hub', 'Bankroll reset to 1,000 credits.', 0);
+        showToast('Skill hub bankroll reset to 1,000 credits.', { tone: 'neutral' });
+      },
     });
   }
 
@@ -794,6 +983,7 @@
   resetMemoryUI();
   resetMathUI();
   resetTargetUI();
+  resetRhythmUI();
   updateCredits();
   logEvent('Host', 'Skill hub ready. Balance seeded with 1,000 credits.', 0);
-})();
+}

@@ -1,222 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Closet Companion</title>
-  <!-- Preload fonts and shared styles for the app surface -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aurora Arcade</title>
+  <meta http-equiv="refresh" content="0; url=NEW/index.html">
+  <link rel="canonical" href="NEW/index.html">
+  <style>
+    :root {
+      color-scheme: dark light;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      background: radial-gradient(circle at 20% 20%, #2a2a72, #000428);
+      color: #f8f9ff;
+    }
+    main {
+      max-width: 28rem;
+      text-align: center;
+      border: 1px solid rgba(248, 249, 255, 0.2);
+      border-radius: 1.25rem;
+      padding: 2.5rem 2rem;
+      background: rgba(12, 16, 48, 0.85);
+      box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.45), inset 0 0 0.5rem rgba(138, 74, 200, 0.2);
+      backdrop-filter: blur(18px);
+    }
+    h1 {
+      margin: 0 0 1rem;
+      font-size: 1.875rem;
+      letter-spacing: 0.04em;
+    }
+    p {
+      margin: 0 0 1.75rem;
+      line-height: 1.55;
+    }
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.65rem;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 249, 255, 0.35);
+      color: inherit;
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: 0.015em;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+      background: rgba(120, 85, 255, 0.2);
+    }
+    a:hover,
+    a:focus-visible {
+      transform: translateY(-2px);
+      background: rgba(120, 85, 255, 0.4);
+      border-color: rgba(248, 249, 255, 0.55);
+    }
+  </style>
 </head>
 <body>
-  <!-- Main application container -->
-  <div class="app-shell">
-    <!-- Title bar with lightweight navigation and profile summary -->
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true"></div>
-        <div>
-          <p class="brand-title">Closet Companion</p>
-          <p class="brand-subtitle">Your daily outfit curator</p>
-        </div>
-      </div>
-      <nav class="primary-nav">
-        <!-- Anchor targets align with the panel ids below -->
-        <a href="#upload" class="nav-link">Upload</a>
-        <a href="#library" class="nav-link">Saved Outfits</a>
-        <a href="#history" class="nav-link">History</a>
-        <a href="#planner" class="nav-link">Planner</a>
-      </nav>
-      <div class="profile">
-        <span class="profile-avatar" aria-hidden="true">JG</span>
-        <span class="profile-name">Welcome back, Jamie</span>
-      </div>
-    </header>
-
-    <main class="app-main">
-      <!-- Upload area: add wardrobe pieces and review stored items -->
-      <section id="upload" class="panel upload-panel">
-        <div class="panel-header">
-          <h2>Upload Wardrobe Pieces</h2>
-          <p>Drop individual items to build your wardrobe digital twin. Tag by type, color, and season.</p>
-        </div>
-        <form id="uploadForm" class="upload-form" aria-label="Upload clothing item">
-          <label class="file-drop">
-            <input id="itemImages" name="itemImages" type="file" accept="image/*" multiple />
-            <span class="drop-icon" aria-hidden="true">⬆</span>
-            <span class="drop-title">Drag & drop images here</span>
-            <span class="drop-subtitle">or browse from your device</span>
-          </label>
-          <div class="field-grid">
-            <label class="field">
-              <span>Item name</span>
-              <input id="itemName" name="itemName" type="text" placeholder="e.g. Linen blazer" required />
-            </label>
-            <label class="field">
-              <span>Category</span>
-              <select id="itemCategory" name="itemCategory">
-                <option>Top</option>
-                <option>Bottom</option>
-                <option>Dress</option>
-                <option>Outerwear</option>
-                <option>Shoes</option>
-                <option>Accessory</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Color palette</span>
-              <input id="itemColors" name="itemColors" type="text" placeholder="Neutral, Warm, Cool" />
-            </label>
-            <label class="field">
-              <span>Seasonal tags</span>
-              <input id="itemSeason" name="itemSeason" type="text" placeholder="Spring, Summer" />
-            </label>
-          </div>
-          <div class="form-actions">
-            <button type="reset" class="btn ghost">Reset</button>
-            <button type="submit" class="btn primary">Add to wardrobe</button>
-          </div>
-        </form>
-        <p class="note">Uploads, saved outfits, and planner entries persist in your browser using local storage.</p>
-        <div class="subpanel">
-          <div class="subpanel-header">
-            <h3>Your wardrobe</h3>
-            <button id="clearWardrobe" class="btn ghost small" type="button">Clear all items</button>
-          </div>
-          <div id="wardrobeGrid" class="wardrobe-grid" aria-live="polite"></div>
-          <p id="wardrobeEmpty" class="empty-state">No items yet. Add a few wardrobe pieces to start building outfits.</p>
-        </div>
-      </section>
-
-      <!-- Outfit library: build reusable looks from wardrobe items -->
-      <section id="library" class="panel outfit-library">
-        <div class="panel-header">
-          <h2>Saved Outfit Library</h2>
-          <p>Curate go-to looks, tag them by vibe, and surface the perfect match in seconds.</p>
-        </div>
-        <form id="outfitForm" class="outfit-form" aria-label="Create outfit">
-          <div class="field-grid">
-            <label class="field">
-              <span>Outfit name</span>
-              <input id="outfitName" name="outfitName" type="text" placeholder="e.g. City Coffee Run" required />
-            </label>
-            <label class="field">
-              <span>Occasion / vibe tags</span>
-              <input id="outfitTags" name="outfitTags" type="text" placeholder="Casual, Neutral, Layered" />
-            </label>
-            <label class="field full">
-              <span>Select wardrobe pieces</span>
-              <select id="outfitItems" name="outfitItems" multiple size="6"></select>
-              <small class="field-helper">Hold <kbd>Ctrl</kbd> (or <kbd>⌘</kbd>) to select multiple items.</small>
-            </label>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn primary">Save outfit</button>
-          </div>
-        </form>
-        <div id="outfitGrid" class="outfit-grid" aria-live="polite"></div>
-        <p id="outfitEmpty" class="empty-state">No outfits saved yet. Combine wardrobe pieces to save your first look.</p>
-      </section>
-
-      <!-- History area: log what was worn and show stats -->
-      <section id="history" class="panel history-panel">
-        <div class="panel-header">
-          <h2>What You Wore</h2>
-          <p>Track your rotation, spot style ruts, and keep your fits feeling fresh.</p>
-        </div>
-        <form id="historyForm" class="history-form" aria-label="Log outfit history">
-          <div class="field-grid">
-            <label class="field">
-              <span>Date worn</span>
-              <input id="historyDate" name="historyDate" type="date" required />
-            </label>
-            <label class="field">
-              <span>Outfit</span>
-              <select id="historyOutfit" name="historyOutfit" required></select>
-            </label>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn primary">Log outfit</button>
-          </div>
-        </form>
-        <div class="history-content">
-          <div class="history-timeline" id="historyTimeline" aria-live="polite"></div>
-          <div class="history-stats">
-            <div class="stat-card" id="statMostWorn">
-              <p class="stat-value">&mdash;</p>
-              <p class="stat-label">Most worn outfit</p>
-            </div>
-            <div class="stat-card" id="statStreak">
-              <p class="stat-value">&mdash;</p>
-              <p class="stat-label">Current streak of unique outfits</p>
-            </div>
-            <div class="stat-card" id="statAttention">
-              <p class="stat-value">&mdash;</p>
-              <p class="stat-label">Items not worn in 60 days</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Planner view: calendar scheduling and insights sidebar -->
-      <section id="planner" class="panel planner-panel">
-        <div class="panel-header">
-          <h2>Plan Ahead</h2>
-          <p>Schedule future fits to stay ready for every meeting, trip, and celebration.</p>
-        </div>
-        <div class="planner-grid">
-          <div class="planner-calendar">
-            <div class="calendar-header">
-              <button id="weekPrev" class="nav-btn" type="button" aria-label="Previous week">‹</button>
-              <p id="weekLabel">Week of &mdash;</p>
-              <button id="weekNext" class="nav-btn" type="button" aria-label="Next week">›</button>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Mon</th>
-                  <th>Tue</th>
-                  <th>Wed</th>
-                  <th>Thu</th>
-                  <th>Fri</th>
-                  <th>Sat</th>
-                  <th>Sun</th>
-                </tr>
-              </thead>
-              <tbody id="plannerBody"></tbody>
-            </table>
-          </div>
-          <aside class="planner-side">
-            <div class="side-card">
-              <h3>Schedule an outfit</h3>
-              <form id="plannerForm" class="planner-form" aria-label="Plan outfit">
-                <label class="field">
-                  <span>Date</span>
-                  <input id="plannerDate" name="plannerDate" type="date" required />
-                </label>
-                <label class="field">
-                  <span>Outfit</span>
-                  <select id="plannerOutfit" name="plannerOutfit" required></select>
-                </label>
-                <div class="form-actions">
-                  <button type="submit" class="btn primary">Schedule outfit</button>
-                </div>
-              </form>
-            </div>
-            <div class="side-card">
-              <h3>Style insights</h3>
-              <ul id="insightsList">
-                <li>Add history entries to unlock personalized insights.</li>
-              </ul>
-            </div>
-          </aside>
-        </div>
-      </section>
-    </main>
-  </div>
-  <!-- Application logic is bundled into a single script for now -->
-  <script src="app.js"></script>
+  <main>
+    <h1>Routing to Aurora Arcade</h1>
+    <p>If you are not redirected automatically, choose the link below to launch the casino experience.</p>
+    <a href="NEW/index.html">Enter the Casino</a>
+  </main>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      window.location.replace("NEW/index.html");
+    });
+  </script>
 </body>
 </html>

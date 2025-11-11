@@ -33,97 +33,152 @@
   </header>
   <div class="nav-overlay" data-nav-overlay hidden></div>
 
-  <main class="content">
-    <section class="hero">
-      <div class="hero__copy">
-        <p class="eyebrow">Synthwave lounge now boarding</p>
-        <h1>Step into a throwback casino dressed in modern neon.</h1>
-        <p class="hero__lead">
-          Aurora Arcade celebrates the golden era of arcade glitz—scanline lighting, responsive neon,
-          and a sandbox bankroll that keeps the focus on fun experimentation.
+  <main class="landing">
+    <section class="landing-hero">
+      <div class="landing-hero__glow"></div>
+      <div class="landing-hero__content">
+        <p class="landing-hero__eyebrow">Welcome Traveler</p>
+        <h1 class="landing-hero__title">Aurora Arcade</h1>
+        <p class="landing-hero__lead">
+          A neon casino sandbox with guided hosts, personalized rivals, and a shared bankroll that
+          resets whenever you need a fresh run.
         </p>
-        <div class="hero__ticker" aria-live="polite">
-          <span class="hero__ticker-label">Live marquee</span>
-          <ul class="hero__ticker-items">
-            <li class="hero__ticker-item"><span aria-hidden="true">✨</span> 80s-inspired HUD overlays</li>
-            <li class="hero__ticker-item"><span aria-hidden="true">🎰</span> Instant feedback mini games</li>
-            <li class="hero__ticker-item"><span aria-hidden="true">🕹️</span> Shared credits across lounges</li>
-          </ul>
-        </div>
-        <div class="hero__actions">
-          <a class="btn btn--primary" href="casino.html">Enter the casino floor</a>
-          <a class="btn btn--ghost" href="online-casino.html">Browse arcade lounge</a>
-          <a class="btn btn--ghost" href="skill-games.html">Try skill games</a>
+        <div class="landing-hero__cta">
+          <a class="btn btn--primary btn--wide btn--glow" href="casino.html">Enter the Games Hub</a>
+          <p class="landing-hero__hint">Every table has an AI host waiting to learn your style.</p>
         </div>
       </div>
-      <div class="hero__panel">
-        <div class="hero__card">
-          <span class="hero__stat-label">Daily spins</span>
-          <span class="hero__stat-value">42,180</span>
-          <span class="hero__stat-footnote">+318 vs retro average</span>
-        </div>
-        <div class="hero__card hero__card--accent">
-          <p class="hero__quote">“It feels like a synth-laced time machine. The interactivity just sings.”</p>
-          <span class="hero__attribution">— The Aurora Team</span>
-        </div>
-        <div class="hero__card hero__card--pulse">
-          <span class="hero__stat-label">Tonight’s vibe</span>
-          <span class="hero__meter">
-            <span class="hero__meter-bar" style="width: 78%"></span>
-            <span class="hero__meter-glow"></span>
-          </span>
-          <span class="hero__stat-footnote">Synthwave saturation 78%</span>
-        </div>
-      </div>
+      <ul class="landing-hero__badges">
+        <li>
+          <span class="landing-hero__badge-title">Shared Credits</span>
+          <span class="landing-hero__badge-copy">1,000 resettable bankroll</span>
+        </li>
+        <li>
+          <span class="landing-hero__badge-title">Adaptive AI</span>
+          <span class="landing-hero__badge-copy">Named rivals track your streaks</span>
+        </li>
+        <li>
+          <span class="landing-hero__badge-title">Fiction Only</span>
+          <span class="landing-hero__badge-copy">Pure prototype entertainment</span>
+        </li>
+      </ul>
     </section>
 
-    <section class="section">
-      <header class="section__header">
-        <h2>Why Aurora?</h2>
-        <p>We remixed the interface into a clean, retro skyline—accessible layouts, glowing accents, and playfully tactile feedback.</p>
-      </header>
-      <div class="grid grid--features">
-        <article class="feature-card">
-          <h3>Instant pacing</h3>
-          <p>Responsive animations and arcade sound cues keep every spin, draw, and bet feeling alive.</p>
+    <section class="landing-feature">
+      <h2>What to Expect</h2>
+      <div class="landing-feature__grid">
+        <article class="landing-feature__card">
+          <h3>Guided Hosts</h3>
+          <p>Your croupiers—Lumen, Vega, and Echo—commentate every move and spotlight your wins.</p>
         </article>
-        <article class="feature-card">
-          <h3>Throwback aesthetic</h3>
-          <p>Scanline gradients, parallax glows, and pixel-inspired typography honour the glory days of neon casinos.</p>
+        <article class="landing-feature__card">
+          <h3>Table Progression</h3>
+          <p>Unlock tougher rivals as you build streaks across cards, dice, and skill games.</p>
         </article>
-        <article class="feature-card">
-          <h3>Sandbox safe</h3>
-          <p>Virtual credits only. No logins, no pressure—just an expressive space to riff on interactive ideas.</p>
+        <article class="landing-feature__card">
+          <h3>Flexible Pace</h3>
+          <p>Jump in for a quick spin or settle in for a full session. Reset whenever you like.</p>
         </article>
       </div>
     </section>
 
-    <section class="section section--split">
-      <div class="section__media">
-        <div class="tilt-card">
-          <span class="tilt-card__icon" aria-hidden="true">🌆</span>
-          <span class="tilt-card__label">Neon skyline</span>
-          <p class="tilt-card__text">Glide between lounges, leaderboards, and mini games in a single glowing UI.</p>
-        </div>
-      </div>
-      <div class="section__body">
-        <h2>Step onto the digital felt</h2>
-        <p>
-          The casino floor features Lucky Spin slots, High Card Duel, and a colour-wheel roulette table.
-          Each surface reimagines classic casino UX with vibrant feedback loops and tactile controls.
-        </p>
-        <ul class="list">
-          <li>1,000 credits every visit—shareable across every lounge</li>
-          <li>Responsive layouts with layered parallax backgrounds</li>
-          <li>Readable history timeline with neon highlights</li>
+    <section class="landing-panels">
+      <article class="landing-panel landing-panel--casino">
+        <header>
+          <p class="landing-panel__eyebrow">Casino Floor</p>
+          <h3>Table legends</h3>
+        </header>
+        <ul class="landing-panel__list">
+          <li>
+            <strong>Triad Poker</strong>
+            <span>New three-card duel versus Dealer Nyx with combo bonuses.</span>
+          </li>
+          <li>
+            <strong>Neon Craps</strong>
+            <span>Point-tracking rail with live pit boss narration.</span>
+          </li>
+          <li>
+            <strong>Street Dice Showdown</strong>
+            <span>Cee-lo risk ladder against Echo Blaze.</span>
+          </li>
+          <li>
+            <strong>Blackjack 21</strong>
+            <span>Adaptive dealer tells you when to stand tall.</span>
+          </li>
         </ul>
-      </div>
+        <a class="btn btn--ghost btn--wide landing-panel__cta" href="casino.html">Explore casino</a>
+      </article>
+      <article class="landing-panel landing-panel--arcade">
+        <header>
+          <p class="landing-panel__eyebrow">Arcade Lounge</p>
+          <h3>Hybrid challenges</h3>
+        </header>
+        <ul class="landing-panel__list">
+          <li>
+            <strong>Orbital Crash</strong>
+            <span>Time your cash-out before the multiplier implodes.</span>
+          </li>
+          <li>
+            <strong>Neon Derby</strong>
+            <span>Cheer boosts and personality-packed runners.</span>
+          </li>
+          <li>
+            <strong>Nova Dice Duel</strong>
+            <span>High, low, or triples with holographic cubes.</span>
+          </li>
+          <li>
+            <strong>Nebula Towers</strong>
+            <span>Brand-new climb where every tier ups the payout.</span>
+          </li>
+        </ul>
+        <a class="btn btn--ghost btn--wide landing-panel__cta" href="online-casino.html">Visit lounge</a>
+      </article>
+      <article class="landing-panel landing-panel--skill">
+        <header>
+          <p class="landing-panel__eyebrow">Skill Gauntlet</p>
+          <h3>Precision drills</h3>
+        </header>
+        <ul class="landing-panel__list">
+          <li>
+            <strong>Reflex Reactor</strong>
+            <span>Wait for the flash, then shave milliseconds off your time.</span>
+          </li>
+          <li>
+            <strong>Nebula Sequence</strong>
+            <span>Pattern memorization with escalating grids.</span>
+          </li>
+          <li>
+            <strong>Pulse Rhythm</strong>
+            <span>Beat-matching taps to climb a glowing payout ladder.</span>
+          </li>
+          <li>
+            <strong>Cipher Grid</strong>
+            <span>Decode a neon cipher before attempts run out.</span>
+          </li>
+        </ul>
+        <a class="btn btn--ghost btn--wide landing-panel__cta" href="skill-games.html">Launch gauntlet</a>
+      </article>
     </section>
 
-    <section class="section section--cta">
-      <h2>Ready to explore?</h2>
-      <p>Queue the synth soundtrack, call a friend, and dive into our neon playground.</p>
-      <a class="btn btn--primary" href="casino.html">Launch Aurora Arcade</a>
+    <section class="landing-updates">
+      <div class="landing-updates__header">
+        <p class="landing-updates__eyebrow">Patch 1.4 highlights</p>
+        <h2>Fresh drops from the dev floor</h2>
+      </div>
+      <div class="landing-updates__grid">
+        <article class="landing-update">
+          <h4>Triad Poker</h4>
+          <p>Three-card hands, combo multipliers, and a charismatic new dealer anchor the refreshed casino circuit.</p>
+        </article>
+        <article class="landing-update">
+          <h4>Nebula Towers</h4>
+          <p>Risk-climb through six neon tiers in the lounge &mdash; every rung you clear ramps the payout curve.</p>
+        </article>
+        <article class="landing-update">
+          <h4>Cipher Grid</h4>
+          <p>A mastermind-style logic arena joins the skill gauntlet with rich feedback and escalating stakes.</p>
+        </article>
+      </div>
     </section>
   </main>
 

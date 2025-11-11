@@ -77,6 +77,12 @@
           <p class="skill-card__meta">Strike the beat the moment the pulse flashes alive.</p>
           <span class="skill-card__payout">Up to 3.2× payout</span>
         </article>
+        <article class="skill-card" data-game="cipher">
+          <span class="skill-card__badge">Logic</span>
+          <h3 class="skill-card__title">Cipher Grid</h3>
+          <p class="skill-card__meta">Crack a four-symbol code before your attempts expire.</p>
+          <span class="skill-card__payout">Up to 3.5× payout</span>
+        </article>
       </div>
     </section>
 
@@ -351,6 +357,57 @@
                     <li><strong>2 hits</strong> · 1.6× stake</li>
                     <li><strong>1 hit</strong> · Stake returned</li>
                     <li><strong>0 hits</strong> · Wager lost</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <div class="skill-module" id="moduleCipher" hidden>
+            <div class="skill-module__wrap">
+              <div class="skill-module__arena">
+                <div class="cipher-console">
+                  <div class="cipher-attempts" id="cipherAttempts">
+                    <p class="cipher-empty">Start the console to receive a neon cipher.</p>
+                  </div>
+                  <div class="cipher-inputs">
+                    <input type="text" id="cipherGuess" maxlength="4" placeholder="Enter 4 letters" autocomplete="off" disabled>
+                    <button class="btn btn--primary btn--wide" type="button" id="cipherSubmit" disabled>Submit guess</button>
+                  </div>
+                </div>
+              </div>
+              <aside class="skill-module__panel">
+                <button class="game-help" type="button" data-help-target="cipherHelp" aria-expanded="false">
+                  <span class="game-help__icon" aria-hidden="true">?</span>
+                  <span class="sr-only">How to play Cipher Grid</span>
+                </button>
+                <div class="form form--stacked">
+                  <label class="form__field">
+                    <span>Bet amount</span>
+                    <input type="number" id="cipherBet" min="40" step="10" value="60">
+                  </label>
+                  <button class="btn btn--primary btn--glow btn--wide" type="button" id="cipherStart">Start cipher</button>
+                </div>
+                <div class="game-panel__overlay" id="cipherHelp" role="dialog" aria-modal="true" aria-labelledby="cipherHelpTitle" hidden>
+                  <div class="game-panel__overlay-inner">
+                    <h4 id="cipherHelpTitle">How to play</h4>
+                    <p>The console selects a four-letter code using symbols A–F. Submit guesses to learn how many are correct and in the right spot.</p>
+                    <ul class="game-panel__overlay-list">
+                      <li>You have four attempts before the grid locks down.</li>
+                      <li>Exact matches glow teal; partial matches amber.</li>
+                      <li>Crack the code for 3.5× your stake. Partial progress refunds a portion.</li>
+                    </ul>
+                    <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+                  </div>
+                </div>
+                <p class="skill-status" id="cipherStatus" data-status>Start the console to receive a fresh cipher.</p>
+                <div class="skill-payouts">
+                  <h4>Payout tiers</h4>
+                  <ul>
+                    <li><strong>Exact code</strong> · 3.5× stake</li>
+                    <li><strong>3 correct</strong> · 1.6× stake</li>
+                    <li><strong>2 correct</strong> · Stake returned</li>
+                    <li><strong>≤ 1 correct</strong> · Wager lost</li>
                   </ul>
                 </div>
               </aside>

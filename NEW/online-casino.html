@@ -106,6 +106,10 @@
           <span class="challenge-nav__title">Nova Dice Duel</span>
           <span class="challenge-nav__meta">High · Low · Triple rush</span>
         </a>
+        <a class="challenge-nav__card challenge-nav__card--tower" href="#towerGame">
+          <span class="challenge-nav__title">Nebula Towers</span>
+          <span class="challenge-nav__meta">Tiered climb · Fresh multipliers</span>
+        </a>
       </div>
     </section>
 
@@ -588,6 +592,64 @@
         </div>
         <p class="game-panel__status" id="diceStatus" data-status>Select a wager and roll the neon dice.</p>
       </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--tower" id="towerGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <span class="game-stage__tag">Risk climb</span>
+            <div class="game-stage__title">
+              <h3>Nebula Towers</h3>
+              <button class="game-help" type="button" data-help-target="towerHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Nebula Towers</span>
+              </button>
+            </div>
+            <p>Ride a neon lift through six glowing tiers. Each tier cleared boosts the multiplier but shrinks your safety window.</p>
+          </div>
+          <div class="tower-visual">
+            <div class="tower-levels" id="towerLevels">
+              <div class="tower-level" data-level="6"><span>Tier 6</span></div>
+              <div class="tower-level" data-level="5"><span>Tier 5</span></div>
+              <div class="tower-level" data-level="4"><span>Tier 4</span></div>
+              <div class="tower-level" data-level="3"><span>Tier 3</span></div>
+              <div class="tower-level" data-level="2"><span>Tier 2</span></div>
+              <div class="tower-level" data-level="1"><span>Tier 1</span></div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Climb settings</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="towerBet" min="30" step="10" value="50">
+              </label>
+              <label class="form__field">
+                <span>Target tiers</span>
+                <input type="range" id="towerDepth" min="1" max="6" value="4">
+                <span class="tower-depth" id="towerDepthValue">4 tiers</span>
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="towerAscend">Ascend tower</button>
+            </div>
+          </div>
+          <div class="game-panel__overlay" id="towerHelp" role="dialog" aria-modal="true" aria-labelledby="towerHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="towerHelpTitle">How to play</h4>
+              <p>Pick a climb depth, pay the stake, and attempt to clear each tier in sequence. Deeper runs pay more but are dramatically harder.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Tier success chances range from 85% down to 40% on the final rung.</li>
+                <li>Clearing all tiers pays up to 4.5×. Partial clears refund a smaller multiplier.</li>
+                <li>Failing on the first tier forfeits the stake—plan your depth wisely.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="towerStatus" data-status role="status" aria-live="polite">Dial in a stake and pick how high to ride.</p>
+        </aside>
       </div>
     </section>
 

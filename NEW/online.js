@@ -122,6 +122,12 @@ if (!creditsDisplay) {
   const diceTrayEl = document.getElementById('diceTray');
   const diceTotalEl = document.getElementById('diceTotal');
   const diceTargetEl = document.getElementById('diceTarget');
+  const towerBetInput = document.getElementById('towerBet');
+  const towerDepthInput = document.getElementById('towerDepth');
+  const towerDepthValue = document.getElementById('towerDepthValue');
+  const towerAscendBtn = document.getElementById('towerAscend');
+  const towerStatus = document.getElementById('towerStatus');
+  const towerLevelsEl = document.getElementById('towerLevels');
   const resultModalEl = document.getElementById('resultModal');
   const resultModalTitleEl = document.getElementById('resultModalTitle');
   const resultModalMessageEl = document.getElementById('resultModalMessage');
@@ -155,6 +161,10 @@ if (!creditsDisplay) {
 
   const limboState = {
     animating: false,
+  };
+  const towerState = {
+    bet: 0,
+    depth: 4,
   };
 
   const HORSE_RUNNERS = [
@@ -236,6 +246,7 @@ if (!creditsDisplay) {
       tone: 'positive',
     },
   ];
+  const WHEEL_POINTER_ANGLE = 90;
   const WHEEL_WEIGHT_TOTAL = WHEEL_SEGMENTS.reduce((sum, segment) => sum + segment.weight, 0);
   const DICE_SYMBOLS = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const DICE_PAYOUTS = {
@@ -390,6 +401,8 @@ if (!creditsDisplay) {
     setStatus(plinkoStatus, 'Select a lane and drop the puck.');
     setStatus(skeeStatus, 'Lock a bet and send the sphere flying.');
     setStatus(memoryStatus, 'Watch the tiles pulse and lock in the sequence.');
+    setStatus(towerStatus, 'Dial in a stake and pick how high to ride.');
+    resetTowerLevels();
   }
 
   // ---------------------------------------------------------------------------
@@ -1651,7 +1664,8 @@ if (!creditsDisplay) {
 
     const midAngle = (segment.start + segment.end) / 2;
     const spins = 2 + Math.floor(Math.random() * 3);
-    const finalRotation = wheelState.rotation + spins * 360 + (360 - midAngle);
+    const alignment = ((WHEEL_POINTER_ANGLE - midAngle) % 360 + 360) % 360;
+    const finalRotation = wheelState.rotation + spins * 360 + alignment;
     wheelState.rotation = finalRotation % 360;
     wheelDisc.style.setProperty('--wheel-rotation', `${finalRotation}deg`);
 
@@ -2108,6 +2122,100 @@ if (!creditsDisplay) {
 
   if (wheelSpinBtn) wheelSpinBtn.addEventListener('click', spinFortuneWheel);
   if (diceRollBtn) diceRollBtn.addEventListener('click', rollNovaDice);
+
+  // Nebula Towers -----------------------------------------------------------
+  function updateTowerDepthLabel() {
+    if (!towerDepthValue || !towerDepthInput) return;
+    const depth = Number(towerDepthInput.value);
+    towerState.depth = depth;
+    towerDepthValue.textContent = `${depth} tier${depth === 1 ? '' : 's'}`;
+  }
+
+  function resetTowerLevels() {
+    if (!towerLevelsEl) return;
+    towerLevelsEl.querySelectorAll('.tower-level').forEach(levelEl => {
+      levelEl.classList.remove('is-cleared', 'is-failed', 'is-active');
+    });
+  }
+
+  function setTowerLevelState(level, state) {
+    if (!towerLevelsEl) return;
+    const target = towerLevelsEl.querySelector(`[data-level="${level}"]`);
+    if (!target) return;
+    target.classList.remove('is-cleared', 'is-failed', 'is-active');
+    if (state) target.classList.add(state);
+  }
+
+  function handleTowerAscend() {
+    if (!towerStatus) return;
+    const rawBet = Number(towerBetInput ? towerBetInput.value : 0);
+    if (!Number.isFinite(rawBet) || rawBet < 30) {
+      setStatus(towerStatus, 'Minimum tower stake is 30 credits.', 'negative');
+      return;
+    }
+    const depth = towerDepthInput ? Number(towerDepthInput.value) : towerState.depth;
+    const bet = Math.round(rawBet / 10) * 10;
+    if (!applyStake(bet)) {
+      setStatus(towerStatus, 'Not enough lounge credits for that climb.', 'negative');
+      return;
+    }
+
+    resetTowerLevels();
+    towerState.bet = bet;
+    towerState.depth = clamp(depth, 1, 6);
+
+    let cleared = 0;
+    let failedLevel = null;
+    for (let level = 1; level <= towerState.depth; level += 1) {
+      setTowerLevelState(level, 'is-active');
+      const successChance = Math.max(0.4, 0.85 - (level - 1) * 0.1);
+      const roll = Math.random();
+      if (roll <= successChance) {
+        cleared += 1;
+        setTowerLevelState(level, 'is-cleared');
+      } else {
+        failedLevel = level;
+        setTowerLevelState(level, 'is-failed');
+        break;
+      }
+    }
+
+    let payout = 0;
+    let tone = 'negative';
+    let message = '';
+    if (cleared === towerState.depth) {
+      const multiplier = 1 + towerState.depth * 0.6;
+      payout = Math.round(bet * multiplier);
+      tone = 'positive';
+      message = `Tower cleared! ${towerState.depth} tiers pay ${multiplier.toFixed(1)}×.`;
+    } else if (cleared > 0) {
+      const multiplier = cleared === 1 ? 0.8 : 1 + (cleared - 1) * 0.35;
+      payout = Math.round(bet * multiplier);
+      tone = multiplier > 1 ? 'neutral' : 'negative';
+      const failCopy = failedLevel ? ` Tier ${failedLevel} collapsed.` : '';
+      message = `You cleared ${cleared} tier${cleared === 1 ? '' : 's'}. Paid ${multiplier.toFixed(2)}×.${failCopy}`;
+    } else {
+      message = 'Tower collapsed on tier one. Stake lost.';
+    }
+
+    if (payout > 0) {
+      credits += payout;
+      updateCredits();
+      flashCredits(payout > bet ? 'positive' : 'neutral');
+    }
+
+    const net = payout - bet;
+    setStatus(towerStatus, message, tone);
+    logEvent('Nebula Towers', message, net);
+    towerState.bet = 0;
+  }
+
+  if (towerAscendBtn) towerAscendBtn.addEventListener('click', handleTowerAscend);
+  if (towerDepthInput) {
+    towerDepthInput.addEventListener('input', updateTowerDepthLabel);
+    updateTowerDepthLabel();
+  }
+  resetTowerLevels();
   if (dicePickSelect) dicePickSelect.addEventListener('change', updateDiceTargetLabel);
 
   if (horseStartBtn) horseStartBtn.addEventListener('click', startHorseRace);

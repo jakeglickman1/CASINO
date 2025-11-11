@@ -108,6 +108,22 @@ if (!creditsDisplay) {
   const pokerAi1RankEl = document.getElementById('pokerAi1Rank');
   const pokerAi2RankEl = document.getElementById('pokerAi2Rank');
   const pokerStatus = document.getElementById('pokerStatus');
+  const ceeloBetInput = document.getElementById('ceeloBet');
+  const ceeloShootBtn = document.getElementById('ceeloShoot');
+  const ceeloStatus = document.getElementById('ceeloStatus');
+  const ceeloPlayerDice = document.getElementById('ceeloPlayerDice');
+  const ceeloAiDice = document.getElementById('ceeloAiDice');
+  const ceeloPlayerResultEl = document.getElementById('ceeloPlayerResult');
+  const ceeloAiResultEl = document.getElementById('ceeloAiResult');
+  const ceeloAiNameEl = document.getElementById('ceeloAiName');
+  const aliasLabel = document.getElementById('playerAliasLabel');
+  const setAliasBtn = document.getElementById('setAlias');
+  const triadBetInput = document.getElementById('triadBet');
+  const triadDealBtn = document.getElementById('triadDeal');
+  const triadStatus = document.getElementById('triadStatus');
+  const triadPlayerRow = document.getElementById('triadPlayer');
+  const triadDealerRow = document.getElementById('triadDealer');
+  const triadResultEl = document.getElementById('triadResult');
 
   const SUITS = ['♠', '♥', '♦', '♣'];
   const RANKS = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'];
@@ -128,6 +144,76 @@ if (!creditsDisplay) {
   ]);
   const VALUE_TO_LABEL = new Map(Array.from(RANK_ORDER.entries(), ([rank, value]) => [value, rank]));
   let rouletteRotation = 0;
+  const ROULETTE_GREEN_MULTIPLIER = 8;
+  const DEFAULT_ALIAS = 'Trailblazer';
+  const AI_PROFILES = {
+    host: 'Host Astra',
+    slots: 'Host Astra',
+    duel: 'Dealer Vega',
+    roulette: 'Croupier Lumen',
+    craps: 'Pit Boss Orion',
+    ceelo: 'Echo Blaze',
+    baccarat: 'Dealer Mara',
+    blackjack: 'Dealer Mara',
+    poker: 'Analyst Ivo',
+    triad: 'Dealer Nyx',
+  };
+  const getStoredAlias = () => {
+    try {
+      return localStorage.getItem('auroraPlayerAlias');
+    } catch (error) {
+      console.warn('Alias storage unavailable', error);
+      return null;
+    }
+  };
+  const storeAlias = value => {
+    try {
+      localStorage.setItem('auroraPlayerAlias', value);
+    } catch (error) {
+      console.warn('Unable to persist alias', error);
+    }
+  };
+  let playerAlias = (getStoredAlias() || '').trim() || DEFAULT_ALIAS;
+  const ROULETTE_WHEEL = [
+    { number: '0', color: 'green' },
+    { number: '28', color: 'black' },
+    { number: '9', color: 'red' },
+    { number: '26', color: 'black' },
+    { number: '30', color: 'red' },
+    { number: '11', color: 'black' },
+    { number: '7', color: 'red' },
+    { number: '20', color: 'black' },
+    { number: '32', color: 'red' },
+    { number: '17', color: 'black' },
+    { number: '5', color: 'red' },
+    { number: '22', color: 'black' },
+    { number: '34', color: 'red' },
+    { number: '15', color: 'black' },
+    { number: '3', color: 'red' },
+    { number: '24', color: 'black' },
+    { number: '36', color: 'red' },
+    { number: '13', color: 'black' },
+    { number: '1', color: 'red' },
+    { number: '00', color: 'green' },
+    { number: '27', color: 'red' },
+    { number: '10', color: 'black' },
+    { number: '25', color: 'red' },
+    { number: '29', color: 'black' },
+    { number: '12', color: 'red' },
+    { number: '8', color: 'black' },
+    { number: '19', color: 'red' },
+    { number: '31', color: 'black' },
+    { number: '18', color: 'red' },
+    { number: '6', color: 'black' },
+    { number: '21', color: 'red' },
+    { number: '33', color: 'black' },
+    { number: '16', color: 'red' },
+    { number: '4', color: 'black' },
+    { number: '23', color: 'red' },
+    { number: '35', color: 'black' },
+    { number: '14', color: 'red' },
+    { number: '2', color: 'black' },
+  ];
 
   const blackjackState = {
     deck: [],
@@ -154,6 +240,16 @@ if (!creditsDisplay) {
     point: null,
     bet: 0,
   };
+  const ceeloState = {
+    bet: 0,
+    playerRoll: [1, 1, 1],
+    aiRoll: [1, 1, 1],
+  };
+  const triadState = {
+    bet: 0,
+    player: [],
+    dealer: [],
+  };
 
   const baccaratState = {
     deck: [],
@@ -166,12 +262,18 @@ if (!creditsDisplay) {
     bankroll.setBalance(credits, options);
   }
 
-  function flashCredits(tone) {
+  function flashCredits(tone = 'neutral') {
     flashIndicator(creditsDisplay, tone);
   }
 
-  function setStatus(element, message, tone = 'neutral') {
-    applyStatus(element, message, tone);
+  function formatForPlayer(message) {
+    return message.replace(/\{player\}/g, playerAlias);
+  }
+
+  function setStatus(element, message, tone = 'neutral', speaker) {
+    if (!element) return;
+    const prefix = speaker ? `${speaker}: ` : '';
+    applyStatus(element, `${prefix}${formatForPlayer(message)}`, tone);
   }
 
   function logEvent(game, message, net = 0, tone) {
@@ -182,8 +284,29 @@ if (!creditsDisplay) {
     if (amount > credits) return false;
     credits -= amount;
     updateCreditsDisplay();
-    flashCredits();
+    flashCredits('negative');
     return true;
+  }
+
+  function updateAliasDisplay() {
+    if (aliasLabel) aliasLabel.textContent = playerAlias;
+  }
+
+  updateAliasDisplay();
+  if (ceeloAiNameEl) ceeloAiNameEl.textContent = AI_PROFILES.ceelo;
+
+  if (setAliasBtn) {
+    setAliasBtn.addEventListener('click', () => {
+      const nextAlias = prompt('Choose your casino alias', playerAlias);
+      if (!nextAlias) return;
+      const trimmed = nextAlias.trim().slice(0, 24);
+      if (!trimmed) return;
+      playerAlias = trimmed;
+      storeAlias(playerAlias);
+      updateAliasDisplay();
+      showToast(`Alias locked as ${playerAlias}.`, { tone: 'positive' });
+      resetStatusMessages();
+    });
   }
 
   function buildDeck() {
@@ -285,7 +408,7 @@ if (!creditsDisplay) {
       flashCredits(tone === 'positive' ? 'positive' : 'neutral');
     }
     const net = payout - crapsState.bet;
-    setStatus(crapsStatus, message, tone);
+    setStatus(crapsStatus, message, tone, AI_PROFILES.craps);
     logEvent('Neon Craps', message, net);
     resetCrapsTable();
   }
@@ -295,18 +418,18 @@ if (!creditsDisplay) {
     if (crapsState.phase === 'idle') {
       const rawBet = Number(crapsBetInput ? crapsBetInput.value : 0);
       if (!Number.isFinite(rawBet) || rawBet < 50) {
-        setStatus(crapsStatus, 'Minimum craps stake is 50 credits.', 'negative');
+        setStatus(crapsStatus, 'Minimum craps stake is 50 credits, {player}.', 'negative', AI_PROFILES.craps);
         return;
       }
       bet = Math.round(rawBet / 25) * 25;
       if (!applyStake(bet)) {
-        setStatus(crapsStatus, 'Not enough credits to fire the dice.', 'negative');
+        setStatus(crapsStatus, 'Not enough credits to fire the dice, {player}.', 'negative', AI_PROFILES.craps);
         return;
       }
       crapsState.bet = bet;
       crapsState.phase = 'comeout';
       if (crapsBetInput) crapsBetInput.disabled = true;
-      setStatus(crapsStatus, 'Come-out roll! Natural pays, craps loses.', 'neutral');
+      setStatus(crapsStatus, 'Come-out roll, {player}! Natural pays, craps loses.', 'neutral', AI_PROFILES.craps);
     }
 
     const die1 = Math.ceil(Math.random() * 6);
@@ -318,7 +441,7 @@ if (!creditsDisplay) {
       if (total === 7 || total === 11) {
         finishCrapsRound({
           payout: bet * 2,
-          message: `Natural ${total}! You pocket ${(bet * 2).toLocaleString()} credits.`,
+          message: `Natural ${total}! You pocket ${(bet * 2).toLocaleString()} credits, {player}.`,
           tone: 'positive',
         });
         return;
@@ -326,7 +449,7 @@ if (!creditsDisplay) {
       if (total === 2 || total === 3 || total === 12) {
         finishCrapsRound({
           payout: 0,
-          message: `Craps ${total}. The house scoops your stake.`,
+          message: `Craps ${total}. The house scoops your stake, {player}.`,
           tone: 'negative',
         });
         return;
@@ -334,7 +457,7 @@ if (!creditsDisplay) {
       crapsState.point = total;
       crapsState.phase = 'point';
       if (crapsPointEl) crapsPointEl.textContent = total.toString();
-      setStatus(crapsStatus, `Point set at ${total}. Roll ${total} before a seven to score.`, 'neutral');
+      setStatus(crapsStatus, `Point set at ${total}. Roll ${total} before a seven to score, {player}.`, 'neutral', AI_PROFILES.craps);
       return;
     }
 
@@ -342,7 +465,7 @@ if (!creditsDisplay) {
       if (total === crapsState.point) {
         finishCrapsRound({
           payout: crapsState.bet * 2,
-          message: `Point made! ${total} hits and pays even money.`,
+          message: `Point made! ${total} hits and pays even money, {player}.`,
           tone: 'positive',
         });
         return;
@@ -350,16 +473,272 @@ if (!creditsDisplay) {
       if (total === 7) {
         finishCrapsRound({
           payout: 0,
-          message: 'Seven out. Dice go cold and the bankroll dips.',
+          message: 'Seven out. Dice go cold and the bankroll dips, {player}.',
           tone: 'negative',
         });
         return;
       }
-      setStatus(crapsStatus, `Rolled ${total}. Still hunting for the point ${crapsState.point}.`, 'neutral');
+      setStatus(crapsStatus, `Rolled ${total}. Still hunting for the point ${crapsState.point}, {player}.`, 'neutral', AI_PROFILES.craps);
     }
   }
 
   if (crapsRollBtn) crapsRollBtn.addEventListener('click', handleCrapsRoll);
+
+  // Street Dice (Cee-lo) ---------------------------------------------------
+  function renderCeeloDice(container, values) {
+    if (!container) return;
+    const diceEls = Array.from(container.querySelectorAll('.die'));
+    values.forEach((value, index) => {
+      const dieEl = diceEls[index];
+      if (!dieEl) return;
+      renderDieFace(dieEl, value);
+    });
+  }
+
+  function rollThreeDice() {
+    return [Math.ceil(Math.random() * 6), Math.ceil(Math.random() * 6), Math.ceil(Math.random() * 6)];
+  }
+
+  function evaluateCeelo(dice) {
+    const sorted = [...dice].sort((a, b) => a - b);
+    const signature = sorted.join('');
+    if (signature === '123') {
+      return { rank: 0, value: 0, kicker: 0, label: '1-2-3 bust' };
+    }
+    if (signature === '456') {
+      return { rank: 4, value: 6, kicker: 6, label: '4-5-6 blaze' };
+    }
+    const counts = new Map();
+    sorted.forEach(value => counts.set(value, (counts.get(value) || 0) + 1));
+    if (counts.size === 1) {
+      const [value] = sorted;
+      return { rank: 3, value, kicker: value, label: `Triple ${value}` };
+    }
+    if (counts.size === 2) {
+      let pairValue = 0;
+      let kicker = 0;
+      counts.forEach((count, value) => {
+        if (count === 2) pairValue = value;
+        else kicker = value;
+      });
+      return { rank: 2, value: pairValue, kicker, label: `Pair of ${pairValue}s + ${kicker}` };
+    }
+    return { rank: 1, value: sorted[2], kicker: sorted[1], label: `High ${sorted[2]}` };
+  }
+
+  function compareCeelo(playerEval, aiEval) {
+    if (playerEval.rank !== aiEval.rank) return Math.sign(playerEval.rank - aiEval.rank);
+    if (playerEval.value !== aiEval.value) return Math.sign(playerEval.value - aiEval.value);
+    if ((playerEval.kicker || 0) !== (aiEval.kicker || 0)) {
+      return Math.sign((playerEval.kicker || 0) - (aiEval.kicker || 0));
+    }
+    return 0;
+  }
+
+  function handleCeeloShoot() {
+    const rawBet = Number(ceeloBetInput ? ceeloBetInput.value : 0);
+    if (!Number.isFinite(rawBet) || rawBet < 40) {
+      setStatus(ceeloStatus, 'Minimum street dice stake is 40 credits, {player}.', 'negative', AI_PROFILES.ceelo);
+      return;
+    }
+    const bet = Math.round(rawBet / 20) * 20;
+    if (!applyStake(bet)) {
+      setStatus(ceeloStatus, 'Not enough credits to shoot the dice, {player}.', 'negative', AI_PROFILES.ceelo);
+      return;
+    }
+
+    const playerRoll = rollThreeDice();
+    const aiRoll = rollThreeDice();
+    ceeloState.bet = bet;
+    ceeloState.playerRoll = playerRoll;
+    ceeloState.aiRoll = aiRoll;
+
+    renderCeeloDice(ceeloPlayerDice, playerRoll);
+    renderCeeloDice(ceeloAiDice, aiRoll);
+
+    const playerEval = evaluateCeelo(playerRoll);
+    const aiEval = evaluateCeelo(aiRoll);
+
+    if (ceeloPlayerResultEl) ceeloPlayerResultEl.textContent = playerEval.label;
+    if (ceeloAiResultEl) ceeloAiResultEl.textContent = aiEval.label;
+
+    const comparison = compareCeelo(playerEval, aiEval);
+    let payout = 0;
+    let tone = 'negative';
+    let message = '';
+
+    if (comparison > 0) {
+      payout = bet * 2;
+      tone = 'positive';
+      message = `Alright {player}, your ${playerEval.label} crushes my ${aiEval.label}. Take ${payout.toLocaleString()} credits.`;
+    } else if (comparison === 0) {
+      payout = bet;
+      tone = 'neutral';
+      message = `We both flash ${playerEval.label}. Push the stake back to you, {player}.`;
+    } else {
+      message = `My ${aiEval.label} tops your ${playerEval.label}. Credits slide my way, {player}.`;
+    }
+
+    if (payout > 0) {
+      credits += payout;
+      updateCreditsDisplay();
+      flashCredits(payout > bet ? 'positive' : 'neutral');
+    }
+
+    const net = payout - bet;
+    setStatus(ceeloStatus, message, tone, AI_PROFILES.ceelo);
+    logEvent(
+      'Street Dice',
+      `Player: ${playerEval.label}. Echo: ${aiEval.label}. ${message}`,
+      net,
+      tone,
+    );
+    ceeloState.bet = 0;
+  }
+
+  if (ceeloShootBtn) ceeloShootBtn.addEventListener('click', handleCeeloShoot);
+
+  // Triad Poker --------------------------------------------------------------
+  function renderTriadHand(container, hand) {
+    if (!container) return;
+    container.innerHTML = '';
+    hand.forEach(card => container.appendChild(makeCardSpan(card, { large: false })));
+  }
+
+  function getTriadStraight(valuesDesc) {
+    const sortedAsc = [...valuesDesc].sort((a, b) => a - b);
+    const unique = Array.from(new Set(sortedAsc));
+    if (unique.length !== 3) return { isStraight: false, highValue: 0 };
+    // Handle A-2-3
+    if (sortedAsc[0] === 2 && sortedAsc[1] === 3 && sortedAsc[2] === 14) {
+      return { isStraight: true, highValue: 3 };
+    }
+    const consecutive = sortedAsc[2] - sortedAsc[0] === 2 && sortedAsc[1] - sortedAsc[0] === 1;
+    return { isStraight: consecutive, highValue: sortedAsc[2] };
+  }
+
+  function evaluateTriad(hand) {
+    const suits = hand.map(card => card.suit);
+    const values = hand.map(card => RANK_ORDER.get(card.rank));
+    const sortedDesc = [...values].sort((a, b) => b - a);
+    const counts = new Map();
+    sortedDesc.forEach(value => counts.set(value, (counts.get(value) || 0) + 1));
+    const isFlush = suits.every(suit => suit === suits[0]);
+    const straightInfo = getTriadStraight(sortedDesc);
+    const hasStraight = straightInfo.isStraight;
+
+    if (isFlush && hasStraight) {
+      return { score: 5, label: 'Straight flush', ranks: [straightInfo.highValue] };
+    }
+    if ([...counts.values()].some(count => count === 3)) {
+      return { score: 4, label: 'Three of a kind', ranks: sortedDesc };
+    }
+    if (hasStraight) {
+      return { score: 3, label: 'Straight', ranks: [straightInfo.highValue] };
+    }
+    if (isFlush) {
+      return { score: 2, label: 'Flush', ranks: sortedDesc };
+    }
+    if ([...counts.values()].some(count => count === 2)) {
+      let pairValue = 0;
+      let kicker = 0;
+      counts.forEach((count, value) => {
+        if (count === 2) pairValue = value;
+        else kicker = value;
+      });
+      return { score: 1, label: `Pair of ${VALUE_TO_LABEL.get(pairValue)}s`, ranks: [pairValue, kicker] };
+    }
+    return { score: 0, label: 'High card', ranks: sortedDesc };
+  }
+
+  function compareTriadHands(playerEval, dealerEval) {
+    if (playerEval.score !== dealerEval.score) {
+      return Math.sign(playerEval.score - dealerEval.score);
+    }
+    const len = Math.max(playerEval.ranks.length, dealerEval.ranks.length);
+    for (let i = 0; i < len; i += 1) {
+      const playerRank = playerEval.ranks[i] || 0;
+      const dealerRank = dealerEval.ranks[i] || 0;
+      if (playerRank !== dealerRank) {
+        return Math.sign(playerRank - dealerRank);
+      }
+    }
+    return 0;
+  }
+
+  function triadMultiplier(score) {
+    if (score >= 5) return 4;
+    if (score === 4) return 3;
+    return 2;
+  }
+
+  function resetTriadUI() {
+    if (triadPlayerRow) triadPlayerRow.innerHTML = '';
+    if (triadDealerRow) triadDealerRow.innerHTML = '';
+    if (triadResultEl) triadResultEl.textContent = '--';
+    triadState.bet = 0;
+    triadState.player = [];
+    triadState.dealer = [];
+  }
+
+  function handleTriadDeal() {
+    const rawBet = Number(triadBetInput ? triadBetInput.value : 0);
+    if (!Number.isFinite(rawBet) || rawBet < 50) {
+      setStatus(triadStatus, 'Minimum Triad Poker stake is 50 credits.', 'negative', AI_PROFILES.triad);
+      return;
+    }
+    const bet = Math.round(rawBet / 25) * 25;
+    if (!applyStake(bet)) {
+      setStatus(triadStatus, 'Not enough credits to challenge Dealer Nyx.', 'negative', AI_PROFILES.triad);
+      return;
+    }
+
+    const deck = buildDeck();
+    shuffleDeck(deck);
+    const player = [drawCard(deck), drawCard(deck), drawCard(deck)];
+    const dealer = [drawCard(deck), drawCard(deck), drawCard(deck)];
+    triadState.bet = bet;
+    triadState.player = player;
+    triadState.dealer = dealer;
+
+    renderTriadHand(triadPlayerRow, player);
+    renderTriadHand(triadDealerRow, dealer);
+
+    const playerEval = evaluateTriad(player);
+    const dealerEval = evaluateTriad(dealer);
+    const comparison = compareTriadHands(playerEval, dealerEval);
+    let payout = 0;
+    let tone = 'negative';
+    let message = '';
+
+    if (comparison > 0) {
+      const multiplier = triadMultiplier(playerEval.score);
+      payout = bet * multiplier;
+      tone = 'positive';
+      message = `Your ${playerEval.label} tops Nyx's ${dealerEval.label}. Paid ${multiplier}×.`;
+    } else if (comparison === 0) {
+      payout = bet;
+      tone = 'neutral';
+      message = `Push. Both hands show ${playerEval.label}. Stake returned.`;
+    } else {
+      message = `Dealer Nyx wins with ${dealerEval.label}.`;
+    }
+
+    if (triadResultEl) triadResultEl.textContent = comparison > 0 ? playerEval.label : dealerEval.label;
+
+    if (payout > 0) {
+      credits += payout;
+      updateCreditsDisplay();
+      flashCredits(tone === 'positive' ? 'positive' : 'neutral');
+    }
+
+    const net = payout - bet;
+    setStatus(triadStatus, message, tone, AI_PROFILES.triad);
+    logEvent('Triad Poker', `${message} Player: ${playerEval.label}. Dealer: ${dealerEval.label}.`, net, tone);
+    triadState.bet = 0;
+  }
+
+  if (triadDealBtn) triadDealBtn.addEventListener('click', handleTriadDeal);
 
   // Baccarat ---------------------------------------------------------------
   function resetBaccaratUI() {
@@ -408,12 +787,12 @@ if (!creditsDisplay) {
   function dealBaccaratRound() {
     const rawBet = Number(baccaratBetInput ? baccaratBetInput.value : 0);
     if (!Number.isFinite(rawBet) || rawBet < 50) {
-      setStatus(baccaratStatus, 'Minimum baccarat stake is 50 credits.', 'negative');
+      setStatus(baccaratStatus, 'Minimum baccarat stake is 50 credits.', 'negative', AI_PROFILES.baccarat);
       return;
     }
     const bet = Math.round(rawBet / 25) * 25;
     if (!applyStake(bet)) {
-      setStatus(baccaratStatus, 'Not enough credits for that shoe.', 'negative');
+      setStatus(baccaratStatus, 'Not enough credits for that shoe.', 'negative', AI_PROFILES.baccarat);
       return;
     }
 
@@ -513,7 +892,7 @@ if (!creditsDisplay) {
     }
 
     const net = payout - bet;
-    setStatus(baccaratStatus, message, tone);
+    setStatus(baccaratStatus, message, tone, AI_PROFILES.baccarat);
     logEvent('Cyber Baccarat', message, net);
     baccaratState.bet = 0;
   }
@@ -528,14 +907,21 @@ if (!creditsDisplay) {
   }
 
   function resetStatusMessages() {
-    setStatus(slotsStatus, 'Set your stake and spin the reels.');
-    setStatus(duelStatus, 'Wager credits to flip for high card.');
-    setStatus(rouletteStatus, 'Pick a color and spin the wheel.');
-    setStatus(crapsStatus, 'Come-out roll the bones.');
-    setStatus(baccaratStatus, 'Bet the shoe and let it ride.');
-    setStatus(blackjackStatus, 'Enter a bet and press deal to start a hand.');
-    setStatus(pokerStatus, 'Deal a hand, hold favorites, draw once, then reveal.');
+    setStatus(slotsStatus, 'Set your stake and spin the reels, {player}.', 'neutral', AI_PROFILES.slots);
+    setStatus(duelStatus, 'Dealer Vega is ready for a single-card showdown.', 'neutral', AI_PROFILES.duel);
+    setStatus(rouletteStatus, 'Pick red, black, or brave green and spin, {player}.', 'neutral', AI_PROFILES.roulette);
+    setStatus(crapsStatus, 'Come-out roll the bones whenever you are steady, {player}.', 'neutral', AI_PROFILES.craps);
+    setStatus(baccaratStatus, 'Place a chip on player, banker, or tie, {player}.', 'neutral', AI_PROFILES.baccarat);
+    setStatus(blackjackStatus, 'Enter a bet and press deal to start a hand.', 'neutral', AI_PROFILES.blackjack);
+    setStatus(pokerStatus, 'Deal a hand, hold favourites, draw once, then reveal.', 'neutral', AI_PROFILES.poker);
+    setStatus(ceeloStatus, 'Echo Blaze waits for a challenger.', 'neutral', AI_PROFILES.ceelo);
+    setStatus(triadStatus, 'Dealer Nyx has three fresh cards ready, {player}.', 'neutral', AI_PROFILES.triad);
     if (rouletteResultEl) rouletteResultEl.textContent = '--';
+    if (ceeloPlayerResultEl) ceeloPlayerResultEl.textContent = '--';
+    if (ceeloAiResultEl) ceeloAiResultEl.textContent = '--';
+    renderCeeloDice(ceeloPlayerDice, [1, 1, 1]);
+    renderCeeloDice(ceeloAiDice, [1, 1, 1]);
+    resetTriadUI();
   }
 
   // Slots --------------------------------------------------------------------
@@ -594,12 +980,12 @@ if (!creditsDisplay) {
     spinButton.addEventListener('click', () => {
       const rawBet = Number(slotsBetInput ? slotsBetInput.value : 0);
       if (!Number.isFinite(rawBet) || rawBet < 10) {
-        setStatus(slotsStatus, 'Minimum spin bet is 10 credits.', 'negative');
+        setStatus(slotsStatus, 'Minimum spin bet is 10 credits.', 'negative', AI_PROFILES.slots);
         return;
       }
       const bet = Math.round(rawBet / 10) * 10;
       if (!applyStake(bet)) {
-        setStatus(slotsStatus, 'Not enough credits for that spin.', 'negative');
+        setStatus(slotsStatus, 'Not enough credits for that spin.', 'negative', AI_PROFILES.slots);
         return;
       }
 
@@ -615,7 +1001,7 @@ if (!creditsDisplay) {
 
       const net = outcome.payout - bet;
       animateReels(result, outcome.tone);
-      setStatus(slotsStatus, `${outcome.message}`, outcome.tone);
+      setStatus(slotsStatus, `${outcome.message}`, outcome.tone, AI_PROFILES.slots);
       logEvent('Lucky Spin', outcome.message, net);
     });
   }
@@ -636,12 +1022,12 @@ if (!creditsDisplay) {
     duelButton.addEventListener('click', () => {
       const rawBet = Number(duelBetInput ? duelBetInput.value : 0);
       if (!Number.isFinite(rawBet) || rawBet < 25) {
-        setStatus(duelStatus, 'Minimum duel bet is 25 credits.', 'negative');
+        setStatus(duelStatus, 'Minimum duel bet is 25 credits.', 'negative', AI_PROFILES.duel);
         return;
       }
       const bet = Math.round(rawBet / 25) * 25;
       if (!applyStake(bet)) {
-        setStatus(duelStatus, 'Not enough credits for that duel.', 'negative');
+        setStatus(duelStatus, 'Not enough credits for that duel.', 'negative', AI_PROFILES.duel);
         return;
       }
 
@@ -693,19 +1079,20 @@ if (!creditsDisplay) {
       }
 
       const net = payout - bet;
-      setStatus(duelStatus, message, tone);
+      setStatus(duelStatus, message, tone, AI_PROFILES.duel);
       logEvent('High Card Duel', message, net);
     });
   }
 
   // Roulette -----------------------------------------------------------------
   function spinRoulette() {
-    const number = Math.floor(Math.random() * 37);
-    let color = 'green';
-    if (number !== 0) {
-      color = number % 2 === 0 ? 'black' : 'red';
-    }
-    return { number, color };
+    return ROULETTE_WHEEL[Math.floor(Math.random() * ROULETTE_WHEEL.length)];
+  }
+
+  function pocketLabel(value) {
+    if (value === '00') return 'double zero';
+    if (value === '0') return 'zero';
+    return value;
   }
 
   if (rouletteForm) {
@@ -713,12 +1100,12 @@ if (!creditsDisplay) {
       event.preventDefault();
       const rawBet = Number(rouletteBetInput ? rouletteBetInput.value : 0);
       if (!Number.isFinite(rawBet) || rawBet < 25) {
-        setStatus(rouletteStatus, 'Minimum roulette bet is 25 credits.', 'negative');
+        setStatus(rouletteStatus, 'Minimum roulette bet is 25 credits.', 'negative', AI_PROFILES.roulette);
         return;
       }
       const bet = Math.round(rawBet / 25) * 25;
       if (!applyStake(bet)) {
-        setStatus(rouletteStatus, 'Not enough credits for that wheel spin.', 'negative');
+        setStatus(rouletteStatus, 'Not enough credits for that wheel spin.', 'negative', AI_PROFILES.roulette);
         return;
       }
 
@@ -741,13 +1128,22 @@ if (!creditsDisplay) {
       let tone = 'negative';
 
       if (outcome.color === choice) {
-        payout = bet * 2;
-        message = 'Color match! You double your wager.';
+        if (choice === 'green') {
+          payout = bet * ROULETTE_GREEN_MULTIPLIER;
+          const label = pocketLabel(outcome.number);
+          message = `${label.charAt(0).toUpperCase()}${label.slice(1)} hit! Green pays ${ROULETTE_GREEN_MULTIPLIER}× for you, {player}.`;
+        } else {
+          payout = bet * 2;
+          message = 'Color match! You double your wager, {player}.';
+        }
         tone = 'positive';
       } else if (outcome.color === 'green') {
-        message = 'House edge! Ball landed on zero.';
+        const label = pocketLabel(outcome.number);
+        message = `House edge! Ball landed on ${label}.`;
+      } else if (choice === 'green') {
+        message = `Green miss, {player}. Wheel favoured ${outcome.color}.`;
       } else {
-        message = `Missed. Wheel favoured ${outcome.color}.`;
+        message = `Missed, {player}. Wheel favoured ${outcome.color}.`;
       }
 
       if (payout > 0) {
@@ -757,7 +1153,7 @@ if (!creditsDisplay) {
       }
 
       const net = payout - bet;
-      setStatus(rouletteStatus, message, tone);
+      setStatus(rouletteStatus, message, tone, AI_PROFILES.roulette);
       logEvent(
         'Color Roulette',
         `${message} Result: ${outcome.number} ${outcome.color}.`,
@@ -872,7 +1268,7 @@ if (!creditsDisplay) {
 
     const net = payout - blackjackState.bet;
     const tone = net > 0 ? 'positive' : net < 0 ? 'negative' : 'neutral';
-    setStatus(blackjackStatus, message, tone);
+    setStatus(blackjackStatus, message, tone, AI_PROFILES.blackjack);
     logEvent('Blackjack', message, net);
 
     if (blackjackPlayerValueEl) {
@@ -891,12 +1287,12 @@ if (!creditsDisplay) {
   function dealBlackjack() {
     const rawBet = Number(blackjackBetInput ? blackjackBetInput.value : 0);
     if (!Number.isFinite(rawBet) || rawBet < 50) {
-      setStatus(blackjackStatus, 'Minimum blackjack bet is 50 credits.', 'negative');
+      setStatus(blackjackStatus, 'Minimum blackjack bet is 50 credits.', 'negative', AI_PROFILES.blackjack);
       return;
     }
     const bet = Math.round(rawBet / 25) * 25;
     if (!applyStake(bet)) {
-      setStatus(blackjackStatus, 'Not enough credits for that bet.', 'negative');
+      setStatus(blackjackStatus, 'Not enough credits for that bet.', 'negative', AI_PROFILES.blackjack);
       return;
     }
 
@@ -911,7 +1307,7 @@ if (!creditsDisplay) {
 
     renderBlackjack(false);
     setBlackjackControls(true);
-    setStatus(blackjackStatus, 'Hit or stand to play the hand.', 'neutral');
+    setStatus(blackjackStatus, 'Hit or stand to play the hand, {player}.', 'neutral', AI_PROFILES.blackjack);
 
     const playerTotal = blackjackHandValue(blackjackState.player);
     const dealerTotal = blackjackHandValue(blackjackState.dealer);
@@ -937,7 +1333,7 @@ if (!creditsDisplay) {
     if (total > 21) {
       finishBlackjack('loss', 'You bust. Dealer wins the hand.');
     } else {
-      setStatus(blackjackStatus, `You have ${total}.`, 'neutral');
+      setStatus(blackjackStatus, `You have ${total}, {player}.`, 'neutral', AI_PROFILES.blackjack);
     }
   }
 
@@ -1230,12 +1626,12 @@ if (!creditsDisplay) {
   function dealPoker() {
     const rawBet = Number(pokerBetInput ? pokerBetInput.value : 0);
     if (!Number.isFinite(rawBet) || rawBet < 100) {
-      setStatus(pokerStatus, 'Minimum poker bet is 100 credits.', 'negative');
+      setStatus(pokerStatus, 'Minimum poker bet is 100 credits.', 'negative', AI_PROFILES.poker);
       return;
     }
     const bet = Math.round(rawBet / 50) * 50;
     if (!applyStake(bet)) {
-      setStatus(pokerStatus, 'Not enough credits for that hand.', 'negative');
+      setStatus(pokerStatus, 'Not enough credits for that hand.', 'negative', AI_PROFILES.poker);
       return;
     }
 
@@ -1253,12 +1649,12 @@ if (!creditsDisplay) {
     renderPokerHands({ reveal: false });
     updatePokerRanks();
     setPokerControls('dealt');
-    setStatus(pokerStatus, 'Click cards to hold them, then draw once.', 'neutral');
+    setStatus(pokerStatus, 'Click cards to hold them, then draw once, {player}.', 'neutral', AI_PROFILES.poker);
   }
 
   function drawPoker() {
     if (pokerState.stage !== 'dealt') {
-      setStatus(pokerStatus, 'Deal a hand before drawing.', 'negative');
+      setStatus(pokerStatus, 'Deal a hand before drawing, {player}.', 'negative', AI_PROFILES.poker);
       return;
     }
     const replacements = [];
@@ -1273,12 +1669,12 @@ if (!creditsDisplay) {
     pokerState.stage = 'drawn';
     renderPokerHands({ reveal: false });
     setPokerControls('drawn');
-    setStatus(pokerStatus, 'Ready to reveal. Hit reveal to see the showdown.', 'neutral');
+    setStatus(pokerStatus, 'Ready to reveal. Hit reveal to see the showdown, {player}.', 'neutral', AI_PROFILES.poker);
   }
 
   function revealPoker() {
     if (pokerState.stage !== 'dealt' && pokerState.stage !== 'drawn') {
-      setStatus(pokerStatus, 'Deal a hand to begin.', 'negative');
+      setStatus(pokerStatus, 'Deal a hand to begin, {player}.', 'negative', AI_PROFILES.poker);
       return;
     }
 
@@ -1325,12 +1721,12 @@ if (!creditsDisplay) {
     if (playerWins && winners.length === 1) {
       payout = Math.round(pokerState.bet * 3);
       tone = 'positive';
-      message = `You win with ${describePokerEvaluation(evaluations[0].evaluation)}!`;
+      message = `You win with ${describePokerEvaluation(evaluations[0].evaluation)}, {player}!`;
     } else if (playerWins) {
       payout = pokerState.bet;
       tone = 'neutral';
       const partners = winners.filter(entry => entry.id !== 'player').map(entry => entry.name).join(' & ');
-      message = `Split pot with ${partners} on ${describePokerEvaluation(evaluations[0].evaluation)}.`;
+      message = `Split pot with ${partners} on ${describePokerEvaluation(evaluations[0].evaluation)}, {player}.`;
     } else {
       const winningOpponent = winners[0];
       message = `${winningOpponent.name} wins with ${describePokerEvaluation(winningOpponent.evaluation)}.`;
@@ -1354,7 +1750,7 @@ if (!creditsDisplay) {
     }
 
     const net = payout - pokerState.bet;
-    setStatus(pokerStatus, message, tone);
+    setStatus(pokerStatus, message, tone, AI_PROFILES.poker);
     logEvent('Poker Draw', message, net);
 
     pokerState.bet = 0;
@@ -1376,6 +1772,7 @@ if (!creditsDisplay) {
         flashCredits('neutral');
         resetDuelCards();
         resetCrapsTable();
+        resetTriadUI();
         resetBaccaratUI();
         rouletteRotation = 0;
         if (rouletteWheelEl) rouletteWheelEl.style.transform = 'rotate(0deg)';
@@ -1393,6 +1790,7 @@ if (!creditsDisplay) {
 
   resetDuelCards();
   resetCrapsTable();
+  resetTriadUI();
   resetBaccaratUI();
   if (rouletteWheelEl) rouletteWheelEl.style.transform = 'rotate(0deg)';
   resetBlackjackUI();

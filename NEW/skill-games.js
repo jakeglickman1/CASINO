@@ -71,12 +71,19 @@ if (!creditsDisplay) {
   const targetArena = document.getElementById('targetArena');
   const targetDot = document.getElementById('targetDot');
   const rhythmModule = document.getElementById('moduleRhythm');
+  const cipherModule = document.getElementById('moduleCipher');
   const rhythmBetInput = document.getElementById('rhythmBet');
   const rhythmStartBtn = document.getElementById('rhythmStart');
   const rhythmStrikeBtn = document.getElementById('rhythmStrike');
   const rhythmStatus = document.getElementById('rhythmStatus');
   const rhythmPrompt = document.getElementById('rhythmPrompt');
   const rhythmPulseEl = document.getElementById('rhythmPulseIndicator');
+  const cipherBetInput = document.getElementById('cipherBet');
+  const cipherStartBtn = document.getElementById('cipherStart');
+  const cipherStatus = document.getElementById('cipherStatus');
+  const cipherGuessInput = document.getElementById('cipherGuess');
+  const cipherSubmitBtn = document.getElementById('cipherSubmit');
+  const cipherAttemptsList = document.getElementById('cipherAttempts');
 
   const DEFAULT_TITLE = 'Choose a skill challenge';
   const DEFAULT_BLURB = 'Select a game card to load its arena and view the betting rules.';
@@ -87,6 +94,7 @@ if (!creditsDisplay) {
     math: mathStatus ? mathStatus.textContent : 'Race the clock through three equations. Higher accuracy boosts your payout.',
     target: targetStatus ? targetStatus.textContent : 'Click the roaming drone six times before the timer runs out.',
     rhythm: rhythmStatus ? rhythmStatus.textContent : 'Press start then tap when the pulse glows.',
+    cipher: cipherStatus ? cipherStatus.textContent : 'Start the console to receive a fresh cipher.',
   };
 
   const GAMES = {
@@ -120,9 +128,16 @@ if (!creditsDisplay) {
       element: rhythmModule,
       reset: resetRhythmUI,
     },
+    cipher: {
+      title: 'Cipher Grid',
+      blurb: 'Crack a four-symbol neon code using limited intel from each attempt.',
+      element: cipherModule,
+      reset: resetCipherUI,
+    },
   };
 
   let currentGameId = null;
+  const CIPHER_SYMBOLS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
   function updateCredits(options) {
     bankroll.setBalance(credits, options);
@@ -654,6 +669,14 @@ if (!creditsDisplay) {
     pulseTimer: null,
     windowTimer: null,
   };
+  const cipherState = {
+    active: false,
+    bet: 0,
+    code: [],
+    attempts: 0,
+    maxAttempts: 4,
+    bestExact: 0,
+  };
 
   function resetTargetUI({ refund = false, keepStatus = false } = {}) {
     clearInterval(targetState.timer);
@@ -940,6 +963,163 @@ if (!creditsDisplay) {
   if (rhythmStartBtn) rhythmStartBtn.addEventListener('click', startRhythmRound);
   if (rhythmStrikeBtn) rhythmStrikeBtn.addEventListener('click', handleRhythmStrike);
 
+  // Cipher Grid -------------------------------------------------------------
+  function resetCipherUI({ refund = false, keepStatus = false } = {}) {
+    if (refund && cipherState.bet > 0) {
+      credits += cipherState.bet;
+      updateCredits();
+      flashCredits('neutral');
+    }
+    cipherState.bet = 0;
+    cipherState.code = [];
+    cipherState.attempts = 0;
+    cipherState.bestExact = 0;
+    cipherState.active = false;
+    if (cipherGuessInput) {
+      cipherGuessInput.value = '';
+      cipherGuessInput.disabled = true;
+    }
+    if (cipherSubmitBtn) cipherSubmitBtn.disabled = true;
+    if (cipherAttemptsList) {
+      cipherAttemptsList.innerHTML =
+        '<p class="cipher-empty">Start the console to receive a neon cipher.</p>';
+    }
+    if (!keepStatus) setStatus(cipherStatus, DEFAULT_STATUS.cipher, 'neutral');
+  }
+
+  function finishCipherRound({ payout = 0, tone = 'negative', message = '' }) {
+    if (payout > 0) {
+      credits += payout;
+      updateCredits();
+      flashCredits(payout > cipherState.bet ? 'positive' : 'neutral');
+    } else {
+      flashCredits('negative');
+    }
+    const net = payout - cipherState.bet;
+    setStatus(cipherStatus, message, tone);
+    logEvent('Cipher Grid', message, net, tone);
+    cipherState.bet = 0;
+    cipherState.active = false;
+    cipherState.code = [];
+    cipherState.attempts = 0;
+    cipherState.bestExact = 0;
+    if (cipherGuessInput) {
+      cipherGuessInput.value = '';
+      cipherGuessInput.disabled = true;
+    }
+    if (cipherSubmitBtn) cipherSubmitBtn.disabled = true;
+  }
+
+  function startCipherRound() {
+    const rawBet = Number(cipherBetInput ? cipherBetInput.value : 0);
+    if (!Number.isFinite(rawBet) || rawBet < 40) {
+      setStatus(cipherStatus, 'Minimum cipher stake is 40 credits.', 'negative');
+      return;
+    }
+    const bet = Math.round(rawBet / 10) * 10;
+    if (!applyStake(bet)) {
+      setStatus(cipherStatus, 'Not enough credits to power the console.', 'negative');
+      return;
+    }
+
+    resetCipherUI({ refund: false, keepStatus: true });
+    cipherState.bet = bet;
+    cipherState.code = Array.from({ length: 4 }, () => CIPHER_SYMBOLS[Math.floor(Math.random() * CIPHER_SYMBOLS.length)]);
+    cipherState.active = true;
+    setStatus(cipherStatus, 'Cipher online. Enter four letters (A–F).', 'neutral');
+    if (cipherGuessInput) {
+      cipherGuessInput.disabled = false;
+      cipherGuessInput.value = '';
+      cipherGuessInput.focus();
+    }
+    if (cipherSubmitBtn) cipherSubmitBtn.disabled = false;
+    if (cipherAttemptsList) cipherAttemptsList.innerHTML = '';
+  }
+
+  function submitCipherGuess() {
+    if (!cipherState.active) {
+      setStatus(cipherStatus, 'Start the console to receive a code.', 'negative');
+      return;
+    }
+    const rawGuess = (cipherGuessInput ? cipherGuessInput.value : '').trim().toUpperCase();
+    if (!/^[A-F]{4}$/.test(rawGuess)) {
+      setStatus(cipherStatus, 'Enter exactly four letters between A and F.', 'negative');
+      return;
+    }
+    const guess = rawGuess.split('');
+    cipherState.attempts += 1;
+    const freq = {};
+    cipherState.code.forEach(letter => {
+      freq[letter] = (freq[letter] || 0) + 1;
+    });
+    let exact = 0;
+    guess.forEach((letter, idx) => {
+      if (cipherState.code[idx] === letter) {
+        exact += 1;
+        freq[letter] -= 1;
+      }
+    });
+    let partial = 0;
+    guess.forEach((letter, idx) => {
+      if (cipherState.code[idx] !== letter && freq[letter] > 0) {
+        partial += 1;
+        freq[letter] -= 1;
+      }
+    });
+    cipherState.bestExact = Math.max(cipherState.bestExact, exact);
+
+    if (cipherAttemptsList) {
+      const row = document.createElement('div');
+      row.className = 'cipher-attempts__item';
+      row.innerHTML = `<strong>${guess.join(' ')}</strong><span>${exact} exact · ${partial} near</span>`;
+      cipherAttemptsList.appendChild(row);
+    }
+
+    if (exact === 4) {
+      const payout = Math.round(cipherState.bet * 3.5);
+      finishCipherRound({
+        payout,
+        tone: 'positive',
+        message: `Cipher cracked! Console pays ${payout.toLocaleString()} credits.`,
+      });
+      return;
+    }
+
+    if (cipherState.attempts >= cipherState.maxAttempts) {
+      const reveal = cipherState.code.join('');
+      let multiplier = 0;
+      if (cipherState.bestExact >= 3) multiplier = 1.6;
+      else if (cipherState.bestExact === 2) multiplier = 1;
+      const payout = Math.round(cipherState.bet * multiplier);
+      const tone = multiplier > 1 ? 'positive' : multiplier === 1 ? 'neutral' : 'negative';
+      const message =
+        multiplier > 0
+          ? `Partial decrypt (${cipherState.bestExact} exact). Code was ${reveal}.`
+          : `Grid locked. Code was ${reveal}.`;
+      finishCipherRound({ payout, tone, message });
+      return;
+    }
+
+    const remaining = cipherState.maxAttempts - cipherState.attempts;
+    setStatus(
+      cipherStatus,
+      `${exact} exact · ${partial} near. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`,
+      'neutral'
+    );
+    if (cipherGuessInput) cipherGuessInput.value = '';
+  }
+
+  if (cipherStartBtn) cipherStartBtn.addEventListener('click', startCipherRound);
+  if (cipherSubmitBtn) cipherSubmitBtn.addEventListener('click', submitCipherGuess);
+  if (cipherGuessInput) {
+    cipherGuessInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !cipherSubmitBtn?.disabled) {
+        event.preventDefault();
+        cipherSubmitBtn.click();
+      }
+    });
+  }
+
 
   if (skillGrid) {
     skillGrid.addEventListener('click', event => {
@@ -984,6 +1164,7 @@ if (!creditsDisplay) {
   resetMathUI();
   resetTargetUI();
   resetRhythmUI();
+  resetCipherUI();
   updateCredits();
   logEvent('Host', 'Skill hub ready. Balance seeded with 1,000 credits.', 0);
 }

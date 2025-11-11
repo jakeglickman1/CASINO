@@ -30,8 +30,10 @@
         <a class="main-nav__link" href="skill-games.html">Skill Games</a>
       </nav>
       <div class="player-panel">
+        <span class="player-panel__alias" id="playerAliasLabel">Trailblazer</span>
         <span class="player-panel__label">Credits</span>
         <span class="player-panel__value" id="creditsDisplay">0</span>
+        <button class="btn btn--ghost" id="setAlias">Set alias</button>
         <button class="btn btn--ghost" id="resetBankroll">Reset</button>
       </div>
     </div>
@@ -61,6 +63,14 @@
           <span class="challenge-nav__title">Neon Craps</span>
           <span class="challenge-nav__meta">Point play with holo dice</span>
         </a>
+        <a class="challenge-nav__card challenge-nav__card--dice" href="#ceeloGame">
+          <span class="challenge-nav__title">Street Dice Showdown</span>
+          <span class="challenge-nav__meta">Three-die battle vs Echo</span>
+        </a>
+        <a class="challenge-nav__card challenge-nav__card--triad" href="#triadPokerGame">
+          <span class="challenge-nav__title">Triad Poker</span>
+          <span class="challenge-nav__meta">Three-card duel · Combo boosts</span>
+        </a>
         <a class="challenge-nav__card challenge-nav__card--horses" href="#baccaratGame">
           <span class="challenge-nav__title">Cyber Baccarat</span>
           <span class="challenge-nav__meta">Player · Banker · Tie</span>
@@ -73,6 +83,127 @@
           <span class="challenge-nav__title">Poker Draw</span>
           <span class="challenge-nav__meta">Hold, draw, reveal</span>
         </a>
+      </div>
+    </section>
+
+    <section class="game-section game-section--ceelo" id="ceeloGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <span class="game-stage__tag">Dice</span>
+            <div class="game-stage__title">
+              <h3>Street Dice Showdown</h3>
+              <button class="game-help" type="button" data-help-target="ceeloHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Street Dice Showdown</span>
+              </button>
+            </div>
+            <p>Cee-lo inspired throwdown against Echo Blaze, the AI street captain. Score triples, high pairs, or the legendary 4-5-6.</p>
+          </div>
+          <div class="ceelo-board">
+            <div class="ceelo-board__side">
+              <h4>You</h4>
+              <div class="ceelo-dice" id="ceeloPlayerDice">
+                <span class="die" data-value="1"></span>
+                <span class="die" data-value="1"></span>
+                <span class="die" data-value="1"></span>
+              </div>
+              <span class="ceelo-result" id="ceeloPlayerResult">--</span>
+            </div>
+            <div class="ceelo-board__divider" aria-hidden="true"></div>
+            <div class="ceelo-board__side ceelo-board__side--ai">
+              <h4 id="ceeloAiName">Echo Blaze</h4>
+              <div class="ceelo-dice" id="ceeloAiDice">
+                <span class="die" data-value="1"></span>
+                <span class="die" data-value="1"></span>
+                <span class="die" data-value="1"></span>
+              </div>
+              <span class="ceelo-result" id="ceeloAiResult">--</span>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Place a shoot</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="ceeloBet" min="40" step="20" value="60">
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="ceeloShoot">Shoot the dice</button>
+            </div>
+          </div>
+          <div class="game-panel__overlay" id="ceeloHelp" role="dialog" aria-modal="true" aria-labelledby="ceeloHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="ceeloHelpTitle">How to play</h4>
+              <p>Roll three dice against Echo Blaze. Highest ranked combo wins—4-5-6 > triples > high pair > high sum. 1-2-3 busts instantly.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Win doubles your stake, ties push, losses drop to Echo.</li>
+                <li>Echo trash-talks when you miss—stay sharp and manage your bankroll.</li>
+                <li>Reset restores the shared credits for every lounge.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="ceeloStatus" data-status role="status" aria-live="polite">Echo Blaze is waiting for a challenger.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-section game-section--triad" id="triadPokerGame">
+      <div class="game-section__inner">
+        <div class="game-stage">
+          <div class="game-stage__header">
+            <span class="game-stage__tag">Cards</span>
+            <div class="game-stage__title">
+              <h3>Triad Poker</h3>
+              <button class="game-help" type="button" data-help-target="triadHelp" aria-expanded="false">
+                <span class="game-help__icon" aria-hidden="true">?</span>
+                <span class="sr-only">How to play Triad Poker</span>
+              </button>
+            </div>
+            <p>Face Dealer Nyx in a three-card poker duel. Straights, flushes, and trips earn combo boosts on top of the base payout.</p>
+          </div>
+          <div class="triad-table">
+            <div class="triad-table__hand">
+              <h4>You</h4>
+              <div class="card-row card-row--medium" id="triadPlayer"></div>
+            </div>
+            <div class="triad-table__result">
+              <span class="triad-table__label">Result</span>
+              <strong id="triadResult">--</strong>
+            </div>
+            <div class="triad-table__hand triad-table__hand--dealer">
+              <h4>Dealer Nyx</h4>
+              <div class="card-row card-row--medium" id="triadDealer"></div>
+            </div>
+          </div>
+        </div>
+        <aside class="game-panel">
+          <div class="panel-block">
+            <h4>Bet controls</h4>
+            <div class="form form--stacked">
+              <label class="form__field">
+                <span>Bet amount</span>
+                <input type="number" id="triadBet" min="50" step="25" value="75">
+              </label>
+              <button class="btn btn--primary btn--glow btn--wide" id="triadDeal">Deal three</button>
+            </div>
+          </div>
+          <div class="game-panel__overlay" id="triadHelp" role="dialog" aria-modal="true" aria-labelledby="triadHelpTitle" hidden>
+            <div class="game-panel__overlay-inner">
+              <h4 id="triadHelpTitle">How to play</h4>
+              <p>Stake at least 50 credits, receive three cards, and compare combos against Dealer Nyx.</p>
+              <ul class="game-panel__overlay-list">
+                <li>Straight flush pays 4×, trips pay 3×, all other wins pay 2×.</li>
+                <li>Dealer’s high card breaks ties when both hands share the same combo.</li>
+                <li>Reset anytime to restore the shared bankroll across the floor.</li>
+              </ul>
+              <button class="btn btn--ghost btn--wide" type="button" data-help-close>Close guide</button>
+            </div>
+          </div>
+          <p class="game-panel__status" id="triadStatus" data-status role="status" aria-live="polite">Stake credits to face Dealer Nyx.</p>
+        </aside>
       </div>
     </section>
 
@@ -219,6 +350,7 @@
                   <select id="rouletteChoice">
                     <option value="red">Red</option>
                     <option value="black">Black</option>
+                    <option value="green">Green (0/00)</option>
                   </select>
                 </label>
                 <button class="btn btn--primary btn--glow btn--wide" type="submit">Spin wheel</button>
@@ -232,9 +364,9 @@
           <div class="game-panel__overlay" id="rouletteHelp" role="dialog" aria-modal="true" aria-labelledby="rouletteHelpTitle" hidden>
             <div class="game-panel__overlay-inner">
               <h4 id="rouletteHelpTitle">How to play</h4>
-              <p>Choose a bet, pick red, black, or the cyan zero, then launch the spin. Results add or subtract from the shared bankroll instantly.</p>
+              <p>Choose a bet, pick red, black, or the neon zero pockets (0/00), then launch the spin. Results add or subtract from the shared bankroll instantly.</p>
               <ul class="game-panel__overlay-list">
-                <li>Red and black pay 2×; the neon zero pays 8× but is far rarer.</li>
+                <li>Red and black pay 2×; green zero pockets pay 8× but are far rarer.</li>
                 <li>Adjust the stake quickly between spins to manage risk across the session.</li>
                 <li>Resetting here resets the shared bankroll everywhere.</li>
               </ul>

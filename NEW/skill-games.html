@@ -38,6 +38,29 @@
   </header>
   <div class="nav-overlay" data-nav-overlay hidden></div>
 
+  <section class="player-stats-bar" data-stats-panel aria-label="Session stats">
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Win rate</span>
+      <strong class="player-stats-bar__value" data-stat="winRate">0%</strong>
+      <span class="player-stats-bar__meta" data-stat="rounds">0 bets logged</span>
+    </article>
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Biggest win</span>
+      <strong class="player-stats-bar__value" data-stat="biggestWin">--</strong>
+      <span class="player-stats-bar__meta" data-stat="wins">0 wins</span>
+    </article>
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Total credits won</span>
+      <strong class="player-stats-bar__value" data-stat="totalWon">0 credits</strong>
+      <span class="player-stats-bar__meta" data-stat="streak">Neutral streak</span>
+    </article>
+    <article class="player-stats-bar__card player-stats-bar__card--glow">
+      <span class="player-stats-bar__label">Net session</span>
+      <strong class="player-stats-bar__value" data-stat="net">+0 credits</strong>
+      <span class="player-stats-bar__meta" data-stat="lastGame">No sessions yet</span>
+    </article>
+  </section>
+
   <main class="content content--wide">
     <section class="section skill-hero">
       <header class="section__header section__header--tight">
@@ -420,6 +443,40 @@
           <h4 class="sr-only" id="skillLogHeading">Skill game log</h4>
           <div class="skill-log__entries" id="skillLog" role="log" aria-live="polite" aria-labelledby="skillLogHeading"></div>
         </aside>
+      </div>
+    </section>
+
+    <section class="plan-section">
+      <div class="plan-section__header">
+        <p class="plan-section__eyebrow">Skill labs plan</p>
+        <h2>Pipeline for the gauntlet</h2>
+        <p>Prototype trials appear here once they clear our nightly playtests. These are the initiatives at the top of the queue.</p>
+      </div>
+      <div class="plan-section__grid">
+        <article class="plan-card">
+          <h3>1. Systems uplift</h3>
+          <ul>
+            <li>Persistent streak tracking shared between all skill rooms.</li>
+            <li>Dynamic bet suggestions that react to player performance.</li>
+            <li>Expanded audio kit with tactile cues for key milestones.</li>
+          </ul>
+        </article>
+        <article class="plan-card">
+          <h3>2. New arenas</h3>
+          <ul>
+            <li>Launch a co-op puzzle vault with synchronized switches.</li>
+            <li>Add a precision flight course with analog-style controls.</li>
+            <li>Prototype a survival timing run with evolving obstacles.</li>
+          </ul>
+        </article>
+        <article class="plan-card">
+          <h3>3. Delivery ops</h3>
+          <ul>
+            <li>Automate regression scripts for every mini-game module.</li>
+            <li>Publish calibration notes so partners can mirror setups.</li>
+            <li>Bundle future-ready art kits to speed seasonal themes.</li>
+          </ul>
+        </article>
       </div>
     </section>
   </main>

@@ -40,6 +40,29 @@
   </header>
   <div class="nav-overlay" data-nav-overlay hidden></div>
 
+  <section class="player-stats-bar" data-stats-panel aria-label="Session stats">
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Win rate</span>
+      <strong class="player-stats-bar__value" data-stat="winRate">0%</strong>
+      <span class="player-stats-bar__meta" data-stat="rounds">0 bets logged</span>
+    </article>
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Biggest win</span>
+      <strong class="player-stats-bar__value" data-stat="biggestWin">--</strong>
+      <span class="player-stats-bar__meta" data-stat="wins">0 wins</span>
+    </article>
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Total credits won</span>
+      <strong class="player-stats-bar__value" data-stat="totalWon">0 credits</strong>
+      <span class="player-stats-bar__meta" data-stat="streak">Neutral streak</span>
+    </article>
+    <article class="player-stats-bar__card player-stats-bar__card--glow">
+      <span class="player-stats-bar__label">Net session</span>
+      <strong class="player-stats-bar__value" data-stat="net">+0 credits</strong>
+      <span class="player-stats-bar__meta" data-stat="lastGame">No sessions yet</span>
+    </article>
+  </section>
+
   <main class="content content--wide">
     <section class="section section--challenge-nav section--floor-nav">
       <header class="section__header section__header--tight">
@@ -222,10 +245,30 @@
             <p>Expanded reels and a glowing cabinet put the focus on streaks. Land pairs to stay alive or align triples for dramatic synthwave payouts.</p>
           </div>
           <div class="slots-viewport">
-            <div class="slots__reels">
-              <span class="slots__reel slots__reel--spark" id="reel1" data-spin>🍒</span>
-              <span class="slots__reel slots__reel--spark" id="reel2" data-spin>⭐</span>
-              <span class="slots__reel slots__reel--spark" id="reel3" data-spin>🍋</span>
+            <div class="slot-machine">
+              <div class="slot-machine__topper">
+                <span class="slot-machine__title">Lucky Spin Cabinet</span>
+                <span class="slot-machine__pulse" aria-hidden="true"></span>
+              </div>
+              <div class="slot-machine__screen">
+                <div class="slots__reels">
+                  <span class="slots__reel slots__reel--spark" id="reel1" data-spin>🍒</span>
+                  <span class="slots__reel slots__reel--spark" id="reel2" data-spin>⭐</span>
+                  <span class="slots__reel slots__reel--spark" id="reel3" data-spin>🍋</span>
+                </div>
+                <div class="slot-machine__glare" aria-hidden="true"></div>
+              </div>
+              <div class="slot-machine__footer">
+                <span class="slot-machine__ticker">Triple 7s pay 8× · Diamonds pay 6× · Clover streak boosts 2×</span>
+              </div>
+              <div class="slot-machine__lights" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="slot-machine__lever" aria-hidden="true">
+                <span class="slot-machine__knob"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -636,6 +679,40 @@
             <div class="history" id="history" role="log" aria-live="polite" aria-labelledby="historyHeading"></div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="plan-section">
+      <div class="plan-section__header">
+        <p class="plan-section__eyebrow">Casino floor plan</p>
+        <h2>Operational roadmap</h2>
+        <p>The pit crew keeps a transparent queue so every deploy is intentional. Here’s the current focus for the main floor.</p>
+      </div>
+      <div class="plan-section__grid">
+        <article class="plan-card">
+          <h3>1. Experience polish</h3>
+          <ul>
+            <li>Refine dealer VO prompts for blackjack, baccarat, and triad poker.</li>
+            <li>Add celebratory lighting states to the roulette rail and craps table.</li>
+            <li>Normalize sound cues so cross-table play feels cohesive.</li>
+          </ul>
+        </article>
+        <article class="plan-card">
+          <h3>2. Systems depth</h3>
+          <ul>
+            <li>Prototype side bets for blackjack and baccarat.</li>
+            <li>Expand triad poker combos with badge tracking.</li>
+            <li>Introduce progressive jackpots tied to the shared bankroll.</li>
+          </ul>
+        </article>
+        <article class="plan-card">
+          <h3>3. Reliability</h3>
+          <ul>
+            <li>Log every major event to the session feed for replay value.</li>
+            <li>Add smoke tests for each table inside the Pages workflow.</li>
+            <li>Document recovery steps so staff can reset games in seconds.</li>
+          </ul>
+        </article>
       </div>
     </section>
   </main>

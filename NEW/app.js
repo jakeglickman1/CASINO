@@ -6,6 +6,7 @@ import {
   attachConfirmAction,
   showToast,
 } from './core/ui.js';
+import { createStatsTracker, bindStatsPanel } from './core/stats.js';
 
 const STARTING_CREDITS = 1000;
 
@@ -17,6 +18,8 @@ if (!creditsDisplay) {
 
   const resetBtn = document.getElementById('resetBankroll');
   const historyEl = document.getElementById('history');
+  const statsTracker = createStatsTracker();
+  bindStatsPanel(statsTracker);
 
   const bankroll = createBankroll({
     startingCredits: STARTING_CREDITS,
@@ -278,6 +281,9 @@ if (!creditsDisplay) {
 
   function logEvent(game, message, net = 0, tone) {
     recordEvent(historyEl, { game, message, net, tone });
+    if (statsTracker && Number.isFinite(net) && net !== 0) {
+      statsTracker.record({ game, net });
+    }
   }
 
   function applyStake(amount) {

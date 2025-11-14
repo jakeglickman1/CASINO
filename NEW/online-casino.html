@@ -38,6 +38,29 @@
   </header>
   <div class="nav-overlay" data-nav-overlay hidden></div>
 
+  <section class="player-stats-bar" data-stats-panel aria-label="Session stats">
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Win rate</span>
+      <strong class="player-stats-bar__value" data-stat="winRate">0%</strong>
+      <span class="player-stats-bar__meta" data-stat="rounds">0 bets logged</span>
+    </article>
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Biggest win</span>
+      <strong class="player-stats-bar__value" data-stat="biggestWin">--</strong>
+      <span class="player-stats-bar__meta" data-stat="wins">0 wins</span>
+    </article>
+    <article class="player-stats-bar__card">
+      <span class="player-stats-bar__label">Total credits won</span>
+      <strong class="player-stats-bar__value" data-stat="totalWon">0 credits</strong>
+      <span class="player-stats-bar__meta" data-stat="streak">Neutral streak</span>
+    </article>
+    <article class="player-stats-bar__card player-stats-bar__card--glow">
+      <span class="player-stats-bar__label">Net session</span>
+      <strong class="player-stats-bar__value" data-stat="net">+0 credits</strong>
+      <span class="player-stats-bar__meta" data-stat="lastGame">No sessions yet</span>
+    </article>
+  </section>
+
   <main class="content">
     <section class="section">
       <header class="section__header">
@@ -660,6 +683,40 @@
       </header>
       <h4 class="sr-only" id="onlineHistoryHeading">Lounge log</h4>
       <div class="history" id="onlineHistory" role="log" aria-live="polite" aria-labelledby="onlineHistoryHeading"></div>
+    </section>
+
+    <section class="plan-section">
+      <div class="plan-section__header">
+        <p class="plan-section__eyebrow">Arcade lounge plan</p>
+        <h2>Upcoming drops</h2>
+        <p>Side quests and social features roll out in waves. This roadmap keeps partners in sync with what’s shipping soon.</p>
+      </div>
+      <div class="plan-section__grid">
+        <article class="plan-card">
+          <h3>1. Co-op energy</h3>
+          <ul>
+            <li>Add ghost replays so friends can chase your best runs.</li>
+            <li>Introduce lightweight party lobbies for simultaneous spins.</li>
+            <li>Share session highlights directly from the lounge log.</li>
+          </ul>
+        </article>
+        <article class="plan-card">
+          <h3>2. Mini-game variety</h3>
+          <ul>
+            <li>Ship two experimental physics toys inside the Plinko lab.</li>
+            <li>Expand tower climbs with branchable routes and jackpots.</li>
+            <li>Layer limited-time events with unique payout curves.</li>
+          </ul>
+        </article>
+        <article class="plan-card">
+          <h3>3. Ops + deployment</h3>
+          <ul>
+            <li>Bundle regression checks for every lounge script.</li>
+            <li>Pipe Pages build metrics into the history feed.</li>
+            <li>Publish an operator handbook alongside each release.</li>
+          </ul>
+        </article>
+      </div>
     </section>
   </main>
 

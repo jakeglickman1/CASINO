@@ -7,31 +7,42 @@
     <style>
       :root {
         font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-        color: #0d1b2a;
+        color: #061627;
+        --slate: #0d2138;
+        --ink: #031424;
+        --sunset: #ff8c5a;
+        --amber: #f5c16c;
+        --sky: #8ad5ff;
+        --mint: #5ae0c7;
+        --panel: rgba(255, 255, 255, 0.86);
+        --panel-dark: rgba(7, 18, 40, 0.85);
       }
       body {
         margin: 0;
-        padding: clamp(1rem, 3vw, 2rem);
+        padding: clamp(1.25rem, 4vw, 3rem);
         line-height: 1.5;
-        background: #f7fbff;
+        background: radial-gradient(circle at 20% 20%, rgba(138, 213, 255, 0.35), transparent 45%),
+          radial-gradient(circle at 80% 0%, rgba(255, 140, 90, 0.3), transparent 55%), #010a14;
       }
       main {
-        max-width: 860px;
+        max-width: 960px;
         margin: 0 auto;
-        background: #ffffff;
-        border-radius: 0.8rem;
-        box-shadow: 0 18px 40px rgba(13, 27, 42, 0.1);
-        padding: clamp(1.25rem, 3vw, 2rem);
+        background: linear-gradient(135deg, rgba(5, 18, 40, 0.92), rgba(8, 24, 57, 0.88));
+        border-radius: 1.25rem;
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.45);
+        padding: clamp(1.5rem, 4vw, 3rem);
+        color: #eaf2ff;
       }
       h1,
       h2,
       h3 {
-        color: #0b3954;
+        color: #ffffff;
         margin-top: 1.25rem;
       }
       h1 {
         margin-top: 0;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
+        font-size: clamp(2.2rem, 4vw, 2.8rem);
       }
       p {
         margin: 0.75rem 0;
@@ -49,16 +60,18 @@
         width: 100%;
         border-collapse: collapse;
         margin: 0.8rem 0 1.4rem;
-        background: #f7fafc;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 0.8rem;
+        overflow: hidden;
       }
       th,
       td {
         padding: 0.65rem 0.8rem;
-        border: 1px solid rgba(13, 27, 42, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         text-align: left;
       }
       pre {
-        background: #0b3954;
+        background: rgba(2, 10, 25, 0.8);
         color: #f8fbff;
         padding: 1rem;
         border-radius: 0.8rem;
@@ -67,14 +80,14 @@
       footer {
         margin-top: 2rem;
         text-align: center;
-        color: #4a5f78;
+        color: rgba(255, 255, 255, 0.72);
         font-size: 0.9rem;
       }
       .doc-logo {
         display: block;
         width: min(320px, 70%);
         margin: 0.5rem auto 1.25rem;
-        filter: drop-shadow(0 10px 16px rgba(8, 27, 31, 0.25));
+        filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.55));
       }
       .doc-figure {
         margin: 1.2rem 0;
@@ -83,85 +96,161 @@
       .doc-figure img {
         width: 100%;
         border-radius: 0.75rem;
-        box-shadow: 0 16px 32px rgba(8, 27, 31, 0.3);
+        box-shadow: 0 25px 40px rgba(0, 0, 0, 0.45);
       }
       .doc-figure figcaption {
         margin-top: 0.45rem;
         font-size: 0.9rem;
-        color: #526178;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .hero {
+        background: linear-gradient(135deg, rgba(255, 140, 90, 0.18), rgba(90, 224, 199, 0.2));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        color: var(--amber);
+      }
+      .panel {
+        background: var(--panel);
+        color: var(--slate);
+        border-radius: 1rem;
+        padding: 1.4rem;
+        margin: 1rem 0;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+      }
+      .panel--accent {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(90, 224, 199, 0.15));
+      }
+      .panel--contrast {
+        background: var(--panel-dark);
+        color: #f6fbff;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .panel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+      .pill-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.8rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .pill-list li {
+        background: rgba(6, 26, 56, 0.08);
+        border: 1px solid rgba(6, 26, 56, 0.08);
+        border-radius: 0.75rem;
+        padding: 0.85rem;
+      }
+      .callout {
+        border-left: 4px solid var(--sunset);
+        padding-left: 1rem;
+      }
+      .table-caption {
+        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-align: right;
       }
     </style>
   </head>
   <body>
     <main>
-      <h1>Retrobowl Sandlot · Reflection</h1>
-      <img src="assets/logo.svg" alt="Retrobowl Sandlot Logo" class="doc-logo" />
+      <section class="hero">
+        <div class="hero-badge">Term Reflection</div>
+        <h1>Retrobowl Sandlot</h1>
+        <p class="callout">
+          This term focuses on a concise, sandlot-inspired football slice that highlights decision making, crisp ball handling, and
+          an inviting presentation. Rather than chase full-season simulation, I’m polishing one expressive possession that showcases
+          input design, feedback loops, and my iteration cadence.
+        </p>
+        <img src="assets/logo.svg" alt="Retrobowl Sandlot Logo" class="doc-logo" />
+        <figure class="doc-figure">
+          <img src="assets/gameplay-preview.svg" alt="Gameplay preview showing player routes and assignments" />
+          <figcaption>The current HUD, route overlays, and trenches rendered in the browser build.</figcaption>
+        </figure>
+      </section>
 
-      <h2>Project Goal</h2>
-      <p>
-        This term’s focus is to deliver a concise, sandlot-inspired football slice that highlights decision making, crisp ball
-        handling, and a welcoming presentation. Rather than chase full-season simulation, the project emphasizes one polished
-        possession that demonstrates my approach to interaction design and rapid prototyping.
-      </p>
-      <figure class="doc-figure">
-        <img src="assets/gameplay-preview.svg" alt="Gameplay preview showing player routes and assignments" />
-        <figcaption>The prototype’s HUD, route overlays, and trenches currently showcased in the browser build.</figcaption>
-      </figure>
+      <section class="panel panel--accent">
+        <h2>Key Progress</h2>
+        <ul class="pill-list">
+          <li>Lightweight browser build with a cohesive retro-stadium art direction.</li>
+          <li>Readable route overlays, player markers, and HUD callouts for situational clarity.</li>
+          <li>Automated GitHub Pages deployment for effortless stakeholder demos.</li>
+          <li>Up-to-date documentation, screenshots, and reflection captured in this page.</li>
+        </ul>
+      </section>
 
-      <h2>Key Progress</h2>
-      <ul>
-        <li>Established a lightweight browser build with consistent typography, color, and layout choices inspired by retro stadiums.</li>
-        <li>Implemented route overlays, player markers, and HUD callouts so viewers immediately understand the on-field scenario.</li>
-        <li>Automated a GitHub Pages deployment path, making it easy to distribute updates without manual exports.</li>
-        <li>Captured the current slice through refreshed documentation, screenshots, and status notes.</li>
-      </ul>
+      <div class="panel-grid">
+        <section class="panel">
+          <h2>What Is Going Well</h2>
+          <p>
+            The focused scope keeps iteration nimble, and the current visual language resonates during critiques. Controls remain
+            responsive on keyboard/mouse, and the deploy pipeline means I can circulate builds with a single link instead of
+            screen-sharing.
+          </p>
+        </section>
+        <section class="panel">
+          <h2>Challenges &amp; Lessons</h2>
+          <ul>
+            <li>Constant scope triage—new feature ideas must not dilute the core slice.</li>
+            <li>SVG route animation required deeper planning, reinforcing the value of sketches.</li>
+            <li>Workflow automation took research but now accelerates every review cycle.</li>
+          </ul>
+        </section>
+      </div>
 
-      <h2>What Is Going Well</h2>
-      <p>
-        The cohesive look-and-feel is resonating during check-ins, and the limited scope keeps iteration efficient. Control
-        responsiveness continues to improve, and being able to point collaborators to a persistent Pages link has streamlined
-        feedback.
-      </p>
+      <section class="panel panel--contrast">
+        <h2>Plan for the Remainder of the Term</h2>
+        <ol>
+          <li>Polish passing feel with richer feedback (meter, catch confirmation, ball flight).</li>
+          <li>Prototype at least one new defensive behavior for more dynamic reads.</li>
+          <li>Add a lightweight tutorial sequence before the first possession.</li>
+          <li>Playtest with classmates and fold their friction notes into the loop.</li>
+        </ol>
+      </section>
 
-      <h2>Challenges &amp; Lessons</h2>
-      <ul>
-        <li>Scope management remains the primary challenge; every new idea competes with the guiding principle of a focused slice.</li>
-        <li>SVG route visualization demanded more planning than anticipated, reinforcing the need for better pre-production sketches.</li>
-        <li>Setting up the GitHub Pages pipeline required learning new workflow permissions but now supports faster reviews.</li>
-      </ul>
+      <section class="panel panel--accent">
+        <h2>Game Overview</h2>
+        <p>
+          Retrobowl Sandlot is a browser-based vignette blending arcade pacing with a light season loop. Mouse-aimed throws, minimal
+          HUD chrome, and lively receiver routes make each possession feel immediate, while broadcast-inspired overlays maintain a
+          professional sheen.
+        </p>
+      </section>
 
-      <h2>Plan for the Remainder of the Term</h2>
-      <ol>
-        <li>Polish the passing mechanic with better feedback (power meter, catch confirmation, ball flight).</li>
-        <li>Prototype at least one defensive behavior change so matchups feel dynamic instead of scripted.</li>
-        <li>Add a short practice/tutorial sequence that introduces controls before the first possession.</li>
-        <li>Playtest with classmates, capture reactions, and iterate on friction points they surface.</li>
-      </ol>
+      <section class="panel">
+        <h2>Feature Highlights</h2>
+        <ul>
+          <li><strong>Mouse-aimed throwing</strong> with a hold-to-charge arc that clears defenders.</li>
+          <li><strong>Receiver route overlays</strong> drawn in SVG for instant pre-snap clarity.</li>
+          <li><strong>Animated trenches</strong> suggesting pocket dynamics even in this slice.</li>
+          <li><strong>Assignment-based defense</strong> so DBs trail their receiver, not just the ball.</li>
+          <li><strong>Persistent LOS + chains</strong> to keep down-and-distance visible.</li>
+          <li><strong>Eight-week season loop</strong> culminating in rings for every title run.</li>
+        </ul>
+      </section>
 
-      <h2>Game Overview</h2>
-      <p>
-        Retrobowl Sandlot is a browser-based football vignette that mixes arcade pacing with a light season loop. Mouse-aimed
-        throws, minimal UI chrome, and lively receiver routes help the experience feel immediate even without a full playbook.
-        Every possession is meant to stand alone as an expressive moment, yet the presentation still nods to television-style HUDs.
-      </p>
-
-      <h2>Feature Highlights</h2>
-      <ul>
-        <li><strong>Mouse-aimed throwing</strong> that builds power with a hold-and-release mechanic so passes can arc over defenders.</li>
-        <li><strong>Receiver route overlays</strong> drawn in SVG to preview WR, TE, and RB assignments before the snap.</li>
-        <li><strong>Animated trenches</strong> to hint at pocket dynamics even in this minimalist slice.</li>
-        <li><strong>Assignment-based defense</strong> where defenders trail receivers instead of blindly chasing the ball.</li>
-        <li><strong>Persistent LOS and first-down markers</strong> so situational awareness is always visible.</li>
-        <li><strong>Eight-week season loop</strong> capped by semifinal and championship showdowns, with rings awarded for titles.</li>
-      </ul>
-
-      <h2>Controls at a Glance</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Action</th>
-            <th>Input</th>
-          </tr>
+      <section class="panel">
+        <h2>Controls at a Glance</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Input</th>
+            </tr>
         </thead>
         <tbody>
           <tr>
@@ -182,43 +271,55 @@
           </tr>
         </tbody>
       </table>
+        <p class="table-caption">Tip: Control transfers to the receiver automatically after a catch.</p>
+      </section>
 
-      <h2>Season &amp; Progression</h2>
-      <ul>
-        <li><strong>Schedule generation:</strong> opponents are chosen from a tuned pool with week-based difficulty scaling.</li>
-        <li><strong>Playoffs:</strong> winning records unlock semifinal and championship rounds, rewarding trophy rings.</li>
-        <li><strong>Dynamic branding:</strong> HUD labels and away end zones update to reflect each opponent.</li>
-      </ul>
+      <section class="panel panel--contrast">
+        <h2>Season &amp; Progression</h2>
+        <ul>
+          <li><strong>Schedule generation:</strong> curated opponents scale with season and week difficulty.</li>
+          <li><strong>Playoffs:</strong> winning records unlock semifinal and championship rounds with trophy rings.</li>
+          <li><strong>Dynamic branding:</strong> HUD labels and away end zone art update per opponent.</li>
+        </ul>
+      </section>
 
-      <h2>Project Structure</h2>
-      <pre><code>index.html   # HUD markup, field layout, static assets
+      <section class="panel panel--accent">
+        <h2>Project Structure</h2>
+        <pre><code>index.html   # HUD markup, field layout, static assets
 style.css    # Stadium aesthetic, player markers, responsive layout
 script.js    # Game state, input, AI, season logic, rendering loop
 README.md    # Project documentation
 README.html  # Reflection + documentation page
 </code></pre>
+      </section>
 
-      <h2>Development Workflow</h2>
-      <ol>
-        <li>Clone or download the repository.</li>
-        <li>Open <code>index.html</code> in a modern browser—no build step required.</li>
-        <li>Optionally run <code>python -m http.server</code> or <code>npx serve</code> for live reload during testing.</li>
-      </ol>
+      <section class="panel">
+        <h2>Development Workflow</h2>
+        <ol>
+          <li>Clone or download the repository.</li>
+          <li>Open <code>index.html</code> in a modern browser—no build step required.</li>
+          <li>Optionally use <code>python -m http.server</code> or <code>npx serve</code> for live reload.</li>
+        </ol>
+      </section>
 
-      <h2>Deployment Status</h2>
-      <ul>
-        <li>The repo is GitHub Pages-friendly; pushing to <code>main</code> is enough to serve the prototype.</li>
-        <li>Documentation and this reflection ship through automated workflows that publish <code>README.html</code>.</li>
-        <li>Pages links make it easy for evaluators and peers to view progress without pulling the repo.</li>
-      </ul>
+      <section class="panel panel--contrast">
+        <h2>Deployment Status</h2>
+        <ul>
+          <li>GitHub Pages serves the project directly from <code>main</code>.</li>
+          <li>Workflows publish <code>README.html</code> whenever documentation changes.</li>
+          <li>Stakeholders access the latest build via one consistent URL.</li>
+        </ul>
+      </section>
 
-      <h2>Roadmap Snapshot</h2>
-      <ol>
-        <li>Diversify defensive calls (zones, blitz looks) to enrich reads.</li>
-        <li>Layer in optional offensive play selection with formations and motion.</li>
-        <li>Persist QB and team stats between runs for a franchise feel.</li>
-        <li>Prototype touch controls so tablets and phones can participate.</li>
-      </ol>
+      <section class="panel">
+        <h2>Roadmap Snapshot</h2>
+        <ol>
+          <li>Diversify defensive calls (zones, blitz looks) to enrich reads.</li>
+          <li>Layer in optional offensive play selection with formations and motion.</li>
+          <li>Persist QB and team stats between runs for a franchise feel.</li>
+          <li>Prototype touch controls so tablets and phones can participate.</li>
+        </ol>
+      </section>
 
       <footer>
         The big objective is to finish the term with a confident, shareable slice of the game that tells the story of my design

@@ -13,6 +13,12 @@ const routeOverlay = document.getElementById("routes-overlay");
 const opponentLabelEl = document.getElementById("opponent-name");
 const seasonInfoEl = document.getElementById("season-info");
 const awayEndzoneEl = document.getElementById("away-endzone");
+const cpuDriveIndicator = document.createElement("div");
+cpuDriveIndicator.id = "cpu-drive-indicator";
+cpuDriveIndicator.className = "cpu-drive-indicator";
+cpuDriveIndicator.innerHTML = '<div class="drive-dot"></div><span>CPU Drive</span>';
+cpuDriveIndicator.style.display = "none";
+field.appendChild(cpuDriveIndicator);
 
 const FIELD_PADDING = 35;
 const RECEIVER_PRESETS = [
@@ -54,6 +60,10 @@ const GAME_RULES = {
   targetScore: 35,
 };
 const ROUTE_PREVIEW_DURATION = 2000;
+const CPU_DRIVE_DEFAULT_DISTANCE = 75;
+const CPU_DRIVE_BASE_TD = 0.42;
+const CPU_DRIVE_BASE_FG = 0.3;
+const CPU_DRIVE_ANIMATION_DURATION = 2.4;
 
 let fieldSize = getFieldSize();
 
@@ -105,6 +115,7 @@ const state = {
   routePreviewVisible: false,
   routePreviewTimeout: null,
   franchise: null,
+  cpuDrive: null,
 };
 
 function getFieldSize() {
@@ -218,6 +229,150 @@ function generatePlayoffOpponents(seasonNumber = 1) {
   });
 }
 
+function getOpponentDifficultyMultiplier() {
+  const opponent = state.franchise?.opponent;
+  return opponent ? clamp(opponent.difficulty, 0.8, 1.4) : 1;
+}
+
+function describeCpuDriveOutcome(outcome, reason) {
+  if (outcome === "td") {
+    return reason === "short-field"
+      ? "Short field: opponent cashes in for six."
+      : "Opponent answers with a touchdown.";
+  }
+  if (outcome === "fg") {
+    return reason === "short-field"
+      ? "Defense bends but gives up three."
+      : "Opponent tacks on a field goal.";
+  }
+  return reason === "short-field"
+    ? "Defense stiffens after the short field."
+    : "Defense forces a stop.";
+}
+
+function randomInRange(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function rollCpuDriveOutcome(options = {}) {
+  const difficulty = getOpponentDifficultyMultiplier();
+  const distanceToGoal = clamp(
+    options.distanceToGoal ?? CPU_DRIVE_DEFAULT_DISTANCE,
+    18,
+    95
+  );
+  const shortFieldBoost = Math.max(0, (90 - distanceToGoal) / 135);
+  let tdChance = CPU_DRIVE_BASE_TD * difficulty + shortFieldBoost;
+  let fgChance = CPU_DRIVE_BASE_FG * (0.8 + 0.2 * difficulty) + shortFieldBoost * 0.5;
+  tdChance = clamp(tdChance, 0.08, 0.85);
+  const fgCap = Math.max(0, 0.95 - tdChance);
+  if (fgCap <= 0) {
+    fgChance = 0;
+  } else {
+    fgChance = clamp(fgChance, 0.05, fgCap);
+  }
+  const roll = Math.random();
+  let outcome = "stop";
+  let points = 0;
+  if (roll < tdChance) {
+    outcome = "td";
+    points = 7;
+  } else if (roll < tdChance + fgChance) {
+    outcome = "fg";
+    points = 3;
+  }
+  let yardsAdvanced = distanceToGoal * randomInRange(0.35, 0.7);
+  if (outcome === "td") {
+    yardsAdvanced = distanceToGoal;
+  } else if (outcome === "fg") {
+    const minGain = distanceToGoal * 0.55;
+    yardsAdvanced = Math.max(minGain, distanceToGoal - randomInRange(6, 18));
+  }
+  yardsAdvanced = clamp(yardsAdvanced, 6, distanceToGoal);
+  return {
+    outcome,
+    points,
+    summary: describeCpuDriveOutcome(outcome, options.reason || "standard"),
+    distanceToGoal,
+    yardsAdvanced,
+  };
+}
+
+function resetCpuDriveSimulation() {
+  state.cpuDrive = null;
+  cpuDriveIndicator.style.display = "none";
+  cpuDriveIndicator.style.opacity = "0";
+}
+
+function startCpuDriveSimulation(options = {}, onComplete) {
+  if (state.cpuDrive?.active) {
+    finishCpuDriveSimulation();
+  }
+  const roll = rollCpuDriveOutcome(options);
+  const startYard = clamp(roll.distanceToGoal, 5, 95);
+  let endYard;
+  if (roll.outcome === "td") {
+    endYard = 0;
+  } else {
+    endYard = Math.max(
+      roll.outcome === "fg" ? 8 : 18,
+      startYard - roll.yardsAdvanced
+    );
+  }
+  const startX = yardsToX(startYard);
+  const endX = yardsToX(endYard);
+  state.cpuDrive = {
+    active: true,
+    elapsed: 0,
+    duration: CPU_DRIVE_ANIMATION_DURATION,
+    startX,
+    endX,
+    outcome: roll,
+    callback: onComplete,
+  };
+  cpuDriveIndicator.style.display = "flex";
+  cpuDriveIndicator.style.opacity = "1";
+  cpuDriveIndicator.style.left = `${startX}px`;
+  if (options.introMessage) {
+    setMessage(options.introMessage);
+  } else {
+    setMessage("Defense takes the field...");
+  }
+}
+
+function updateCpuDriveSimulation(dt) {
+  const sim = state.cpuDrive;
+  if (!sim?.active) {
+    return;
+  }
+  sim.elapsed += dt;
+  const ratio = clamp(sim.elapsed / sim.duration, 0, 1);
+  const eased = ratio * ratio * (3 - 2 * ratio);
+  const currentX = sim.startX + (sim.endX - sim.startX) * eased;
+  cpuDriveIndicator.style.left = `${currentX}px`;
+  if (ratio >= 1) {
+    finishCpuDriveSimulation();
+  }
+}
+
+function finishCpuDriveSimulation() {
+  const sim = state.cpuDrive;
+  if (!sim) {
+    return;
+  }
+  state.cpuDrive = null;
+  cpuDriveIndicator.style.opacity = "0";
+  setTimeout(() => {
+    cpuDriveIndicator.style.display = "none";
+  }, 260);
+  if (sim.outcome.points > 0) {
+    state.defenseScore += sim.outcome.points;
+  }
+  if (typeof sim.callback === "function") {
+    sim.callback(sim.outcome.summary);
+  }
+}
+
 function applyOpponentDifficulty(opponent) {
   const multiplier = opponent ? Math.min(1.4, Math.max(0.8, opponent.difficulty)) : 1;
   state.players.defenders.forEach((player) => {
@@ -295,6 +450,7 @@ function resetInGameState() {
   state.lineOfScrimmage = 20;
   state.nextFirstDown = 30;
   updateHud();
+  resetCpuDriveSimulation();
 }
 
 function prepareMatch() {
@@ -886,28 +1042,47 @@ function endPlay(outcome, yardLine) {
     state.lineOfScrimmage = 20;
     state.nextFirstDown = 30;
     state.down = 1;
-    setMessage("Touchdown! Lining up for the next drive.");
-    updateHud();
-    if (maybeFinishGame()) {
-      return;
-    }
-    setTimeout(startPlay, 1400);
+    const baseMessage = "Touchdown! Defense heads to the field...";
+    const finalizeDrive = (cpuSummary) => {
+      const combinedMessage = cpuSummary
+        ? `Touchdown! ${cpuSummary}`
+        : "Touchdown! Defense holds.";
+      updateHud();
+      if (maybeFinishGame()) {
+        setMessage(combinedMessage);
+        return;
+      }
+      setMessage(combinedMessage);
+      setTimeout(startPlay, 1400);
+    };
+    startCpuDriveSimulation({ reason: "kickoff", introMessage: baseMessage }, finalizeDrive);
     return;
   }
 
   if (outcome === "turnover") {
-    state.defenseScore += 7;
     state.drive += 1;
+    const cpuDistance = clamp(100 - yard, 18, 95);
     state.ballOn = 20;
     state.lineOfScrimmage = 20;
     state.nextFirstDown = 30;
     state.down = 1;
-    setMessage("Turnover! Defense cashes in.");
-    updateHud();
-    if (maybeFinishGame()) {
-      return;
-    }
-    setTimeout(startPlay, 1400);
+    const introMessage = "Turnover! Defense races out...";
+    const finalizeDrive = (cpuSummary) => {
+      const combinedMessage = cpuSummary
+        ? `Turnover! ${cpuSummary}`
+        : "Turnover! Defense holds.";
+      updateHud();
+      if (maybeFinishGame()) {
+        setMessage(combinedMessage);
+        return;
+      }
+      setMessage(combinedMessage);
+      setTimeout(startPlay, 1400);
+    };
+    startCpuDriveSimulation(
+      { reason: "short-field", distanceToGoal: cpuDistance, introMessage: introMessage },
+      finalizeDrive
+    );
     return;
   }
 
@@ -943,18 +1118,33 @@ function endPlay(outcome, yardLine) {
 }
 
 function turnoverOnDowns() {
-  state.defenseScore += 3;
+  const turnoverSpot = state.ballOn;
   state.drive += 1;
   state.ballOn = 20;
   state.lineOfScrimmage = 20;
   state.nextFirstDown = 30;
   state.down = 1;
-  setMessage("Turnover on downs. Resetting at the 20.");
-  updateHud();
-  if (maybeFinishGame()) {
-    return;
-  }
-  setTimeout(startPlay, 1200);
+  const introMessage = "Turnover on downs. Defense scrambles back out...";
+  const finalizeDrive = (cpuSummary) => {
+    const combinedMessage = cpuSummary
+      ? `Turnover on downs. ${cpuSummary}`
+      : "Turnover on downs. Defense stands tall.";
+    updateHud();
+    if (maybeFinishGame()) {
+      setMessage(combinedMessage);
+      return;
+    }
+    setMessage(combinedMessage);
+    setTimeout(startPlay, 1200);
+  };
+  startCpuDriveSimulation(
+    {
+      reason: "short-field",
+      distanceToGoal: clamp(100 - turnoverSpot, 18, 95),
+      introMessage,
+    },
+    finalizeDrive
+  );
 }
 
 function maybeFinishGame() {
@@ -1137,6 +1327,7 @@ function resizeField() {
 }
 
 function update(dt) {
+  updateCpuDriveSimulation(dt);
   if (state.chargingThrow) {
     state.throwCharge = clamp(
       state.throwCharge + dt / THROW_CHARGE_TIME,

@@ -342,6 +342,37 @@ body {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
+.cpu-drive-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16rem;
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 12;
+  transition: opacity 0.3s ease;
+}
+
+.cpu-drive-indicator .drive-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe2a0, #c46a19 70%);
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 12px rgba(255, 180, 72, 0.8), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.cpu-drive-indicator span {
+  font-weight: 600;
+  letter-spacing: 0.3rem;
+}
+
 @media (max-width: 720px) {
   body {
     padding: 1.5rem 1rem 2rem;

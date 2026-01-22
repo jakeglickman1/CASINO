@@ -1,4 +1,4 @@
-name: Deploy README Page
+name: Deploy docs to GitHub Pages
 
 on:
   push:
@@ -12,31 +12,26 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "deploy-readme"
-  cancel-in-progress: false
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Build documentation artifact
-        run: |
-          mkdir -p public
-          cp README.html public/index.html
-          if [ -d assets ]; then
-            cp -R assets public/
-          fi
-
-      - name: Upload artifact
+      - name: Upload docs artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: docs
 
       - name: Deploy to GitHub Pages
         id: deployment

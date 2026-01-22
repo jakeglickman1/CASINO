@@ -13,6 +13,13 @@ const routeOverlay = document.getElementById("routes-overlay");
 const opponentLabelEl = document.getElementById("opponent-name");
 const seasonInfoEl = document.getElementById("season-info");
 const awayEndzoneEl = document.getElementById("away-endzone");
+const homeScreenEl = document.getElementById("home-screen");
+const homeRecordEl = document.getElementById("home-record");
+const homeStageEl = document.getElementById("home-stage");
+const homeOpponentEl = document.getElementById("home-opponent-name");
+const homeMessageEl = document.getElementById("home-screen-message");
+const homePlayButton = document.getElementById("home-play-button");
+const homeSimButton = document.getElementById("home-sim-button");
 const cpuDriveIndicator = document.createElement("div");
 cpuDriveIndicator.id = "cpu-drive-indicator";
 cpuDriveIndicator.className = "cpu-drive-indicator";
@@ -116,6 +123,11 @@ const state = {
   routePreviewTimeout: null,
   franchise: null,
   cpuDrive: null,
+  homeScreen: {
+    visible: false,
+    busy: false,
+    pendingMessage: "",
+  },
 };
 
 function getFieldSize() {
@@ -393,6 +405,19 @@ function updateOpponentBranding() {
   }
 }
 
+function describeFranchiseStage(franchise) {
+  if (!franchise) {
+    return "Exhibition";
+  }
+  if (franchise.stage === "regular") {
+    return `Week ${Math.min(franchise.week, franchise.regularWeeks)}/${franchise.regularWeeks}`;
+  }
+  if (franchise.stage === "playoffs") {
+    return `Playoffs · ${PLAYOFF_ROUNDS[franchise.playoffRound] || "Final"}`;
+  }
+  return "Exhibition";
+}
+
 function updateSeasonHud() {
   if (!seasonInfoEl) {
     return;
@@ -402,18 +427,85 @@ function updateSeasonHud() {
     seasonInfoEl.textContent = "Season setup...";
     return;
   }
-  let stageLabel = "";
-  if (franchise.stage === "regular") {
-    stageLabel = `Week ${Math.min(franchise.week, franchise.regularWeeks)}/${franchise.regularWeeks}`;
-  } else if (franchise.stage === "playoffs") {
-    stageLabel = `Playoffs · ${PLAYOFF_ROUNDS[franchise.playoffRound] || "Final"}`;
-  } else {
-    stageLabel = "Exhibition";
-  }
+  const stageLabel = describeFranchiseStage(franchise);
   const opponentName = franchise.opponent ? `vs ${franchise.opponent.name}` : "";
   const recordText = `Record ${franchise.record.wins}-${franchise.record.losses}`;
   const trophyText = franchise.trophies > 0 ? ` · Rings ${franchise.trophies}` : "";
   seasonInfoEl.textContent = `Season ${franchise.season} · ${stageLabel} · ${opponentName} · ${recordText}${trophyText}`;
+}
+
+function updateHomeScreenPanel(message) {
+  const franchise = state.franchise;
+  if (!franchise) {
+    if (homeRecordEl) {
+      homeRecordEl.textContent = "Record 0-0";
+    }
+    if (homeStageEl) {
+      homeStageEl.textContent = "Season setup";
+    }
+    if (homeOpponentEl) {
+      homeOpponentEl.textContent = "CPU";
+    }
+    if (homeMessageEl) {
+      homeMessageEl.textContent = message || "";
+    }
+    return;
+  }
+  if (homeRecordEl) {
+    homeRecordEl.textContent = `Record ${franchise.record.wins}-${franchise.record.losses}`;
+  }
+  if (homeStageEl) {
+    homeStageEl.textContent = `Season ${franchise.season} · ${describeFranchiseStage(franchise)}`;
+  }
+  if (homeOpponentEl) {
+    homeOpponentEl.textContent = franchise.opponent ? franchise.opponent.name : "CPU";
+  }
+  if (homeMessageEl) {
+    homeMessageEl.textContent = message || "";
+  }
+}
+
+function showHomeScreen(message) {
+  if (!homeScreenEl) {
+    return;
+  }
+  const displayMessage = message ?? state.homeScreen.pendingMessage;
+  state.homeScreen.pendingMessage = "";
+  updateHomeScreenPanel(displayMessage);
+  homeScreenEl.classList.remove("hidden");
+  state.homeScreen.visible = true;
+  state.homeScreen.busy = false;
+  if (homePlayButton) {
+    homePlayButton.disabled = false;
+  }
+  if (homeSimButton) {
+    homeSimButton.disabled = false;
+  }
+}
+
+function hideHomeScreen() {
+  if (!homeScreenEl) {
+    return;
+  }
+  homeScreenEl.classList.add("hidden");
+  state.homeScreen.visible = false;
+  if (homeMessageEl) {
+    homeMessageEl.textContent = "";
+  }
+}
+
+function setHomeScreenBusy(isBusy) {
+  state.homeScreen.busy = isBusy;
+  if (homePlayButton) {
+    homePlayButton.disabled = isBusy;
+  }
+  if (homeSimButton) {
+    homeSimButton.disabled = isBusy;
+  }
+}
+
+function queueHomeScreenMessage(message) {
+  state.homeScreen.pendingMessage = message || "";
 }
 
 function pickNextOpponent() {
@@ -435,6 +527,9 @@ function pickNextOpponent() {
   applyOpponentDifficulty(opponent);
   updateOpponentBranding();
   updateSeasonHud();
+  if (state.homeScreen.visible) {
+    updateHomeScreenPanel();
+  }
 }
 
 function resetInGameState() {
@@ -454,6 +549,7 @@ function resetInGameState() {
 }
 
 function prepareMatch() {
+  hideHomeScreen();
   resetInGameState();
   startPlay();
 }
@@ -683,7 +779,7 @@ function beginSeason(seasonNumber, trophies) {
     opponent: null,
   };
   pickNextOpponent();
-  prepareMatch();
+  showHomeScreen();
 }
 
 function advanceSeason() {
@@ -1164,19 +1260,19 @@ function maybeFinishGame() {
   return true;
 }
 
-function finalizeMatch(playerWon) {
+function finalizeMatch(playerWon, options = {}) {
   state.playActive = false;
   state.ball.inFlight = false;
   hideRoutePreview();
   const franchise = state.franchise;
   const opponentName = franchise?.opponent?.name || "CPU";
-  let summary = playerWon
-    ? `You beat the ${opponentName}!`
-    : `Fell to the ${opponentName}.`;
+  let summary =
+    options.summaryOverride ||
+    (playerWon ? `You beat the ${opponentName}!` : `Fell to the ${opponentName}.`);
 
   if (!franchise) {
     setMessage(summary);
-    setTimeout(() => prepareMatch(), 2000);
+    setTimeout(() => showHomeScreen(summary), options.postGameDelay ?? 2000);
     return;
   }
 
@@ -1197,17 +1293,21 @@ function finalizeMatch(playerWon) {
         summary += " Playoffs bound!";
         pickNextOpponent();
         setMessage(summary);
-        setTimeout(() => prepareMatch(), 2200);
+        setTimeout(
+          () => showHomeScreen(summary),
+          options.postGameDelay ?? 2200
+        );
         return;
       }
       summary += " Season over. Restarting for a new year.";
       setMessage(summary);
-      setTimeout(() => advanceSeason(), 2400);
+      queueHomeScreenMessage(summary);
+      setTimeout(() => advanceSeason(), options.postGameDelay ?? 2400);
       return;
     }
     pickNextOpponent();
     setMessage(summary);
-    setTimeout(() => prepareMatch(), 1800);
+    setTimeout(() => showHomeScreen(summary), options.postGameDelay ?? 1800);
     return;
   }
 
@@ -1218,19 +1318,72 @@ function finalizeMatch(playerWon) {
         franchise.trophies += 1;
         summary += " Champions!";
         setMessage(summary);
-        setTimeout(() => advanceSeason(), 2500);
+        queueHomeScreenMessage(summary);
+        setTimeout(() => advanceSeason(), options.postGameDelay ?? 2500);
         return;
       }
       summary += ` Advancing to the ${PLAYOFF_ROUNDS[franchise.playoffRound]}.`;
       pickNextOpponent();
       setMessage(summary);
-      setTimeout(() => prepareMatch(), 2000);
+      setTimeout(() => showHomeScreen(summary), options.postGameDelay ?? 2000);
       return;
     }
     summary += " Playoff run ends here.";
     setMessage(summary);
-    setTimeout(() => advanceSeason(), 2400);
+    queueHomeScreenMessage(summary);
+    setTimeout(() => advanceSeason(), options.postGameDelay ?? 2400);
   }
+}
+
+function simulateNextGame() {
+  const franchise = state.franchise;
+  if (!franchise || state.homeScreen.busy) {
+    return;
+  }
+  if (!franchise.opponent) {
+    updateHomeScreenPanel("No opponent available yet.");
+    return;
+  }
+  setHomeScreenBusy(true);
+  hideHomeScreen();
+  const opponentName = franchise.opponent.name;
+  setMessage(`Simulating vs ${opponentName}...`);
+  const difficulty = getOpponentDifficultyMultiplier();
+  const variance = randomInRange(-0.05, 0.05);
+  const baseChance = clamp(0.62 - (difficulty - 1) * 0.75 + variance, 0.18, 0.85);
+  const playerWon = Math.random() < baseChance;
+  let playerScore = Math.round(randomInRange(20, 38));
+  let opponentScore = Math.round(randomInRange(17, 34));
+  if (playerWon && playerScore <= opponentScore) {
+    playerScore = opponentScore + Math.floor(Math.random() * 6) + 1;
+  } else if (!playerWon && opponentScore <= playerScore) {
+    opponentScore = playerScore + Math.floor(Math.random() * 6) + 1;
+  }
+  state.offenseScore = playerScore;
+  state.defenseScore = opponentScore;
+  updateHud();
+  const summary = playerWon
+    ? `Sim win! Beat the ${opponentName} ${playerScore}-${opponentScore}.`
+    : `Sim loss to the ${opponentName} ${opponentScore}-${playerScore}.`;
+  finalizeMatch(playerWon, { summaryOverride: summary, postGameDelay: 1500 });
+}
+
+if (homePlayButton) {
+  homePlayButton.addEventListener("click", () => {
+    if (state.homeScreen.busy) {
+      return;
+    }
+    prepareMatch();
+  });
+}
+
+if (homeSimButton) {
+  homeSimButton.addEventListener("click", () => {
+    if (state.homeScreen.busy) {
+      return;
+    }
+    simulateNextGame();
+  });
 }
 
 function renderPlayers() {

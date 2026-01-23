@@ -224,6 +224,118 @@ body {
   color: rgba(255, 255, 255, 0.8);
 }
 
+.roster-section {
+  margin-top: 1.4rem;
+  text-align: left;
+}
+
+.roster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.roster-header h3 {
+  margin: 0;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.roster-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.8rem;
+  padding: 0.4rem;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.roster-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+}
+
+.roster-entry strong {
+  letter-spacing: 0.12rem;
+  font-size: 0.78rem;
+}
+
+.rating-stars {
+  font-size: 0.85rem;
+  color: #ffd369;
+  letter-spacing: 0.1rem;
+}
+
+.draft-picks {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.management-panel {
+  margin-top: 1.1rem;
+  text-align: left;
+}
+
+.roster-select {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.6rem;
+  border: none;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.management-actions {
+  margin-top: 0.6rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.management-actions button {
+  padding: 0.6rem 0.4rem;
+  border-radius: 0.6rem;
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.08rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.management-actions button.wide {
+  grid-column: span 2;
+  background: linear-gradient(120deg, #8ed1ff, #4ab3ff);
+  color: #051631;
+}
+
+.management-actions button.secondary {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.management-actions button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .stadium {
   width: min(1080px, 100%);
 }

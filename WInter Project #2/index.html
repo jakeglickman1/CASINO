@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <div class="home-screen hidden" id="home-screen">
+      <div class="home-screen hidden" id="home-screen">
       <div class="home-card">
         <h2>Locker Room</h2>
         <p class="home-record" id="home-record">Record 0-0</p>
@@ -51,6 +51,22 @@
         <div class="home-actions">
           <button id="home-play-button">Play Game</button>
           <button id="home-sim-button" class="sim">Sim Game</button>
+        </div>
+        <div class="roster-section">
+          <div class="roster-header">
+            <h3>Roster</h3>
+            <div id="draft-picks-display" class="draft-picks">Draft Picks: R1×1 · R2×1 · R3×1</div>
+          </div>
+          <div class="roster-list" id="roster-list"></div>
+        </div>
+        <div class="management-panel">
+          <label for="roster-select">Select Player</label>
+          <select id="roster-select" class="roster-select"></select>
+          <div class="management-actions">
+            <button id="sign-player" class="wide">Sign Player</button>
+            <button id="release-player" class="secondary">Release</button>
+            <button id="trade-player" class="secondary">Trade for Pick</button>
+          </div>
         </div>
         <div class="home-message" id="home-screen-message"></div>
       </div>

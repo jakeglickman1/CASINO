@@ -20,6 +20,12 @@ const homeOpponentEl = document.getElementById("home-opponent-name");
 const homeMessageEl = document.getElementById("home-screen-message");
 const homePlayButton = document.getElementById("home-play-button");
 const homeSimButton = document.getElementById("home-sim-button");
+const rosterListEl = document.getElementById("roster-list");
+const rosterSelectEl = document.getElementById("roster-select");
+const draftPicksDisplayEl = document.getElementById("draft-picks-display");
+const signPlayerButton = document.getElementById("sign-player");
+const releasePlayerButton = document.getElementById("release-player");
+const tradePlayerButton = document.getElementById("trade-player");
 const cpuDriveIndicator = document.createElement("div");
 cpuDriveIndicator.id = "cpu-drive-indicator";
 cpuDriveIndicator.className = "cpu-drive-indicator";
@@ -71,6 +77,48 @@ const CPU_DRIVE_DEFAULT_DISTANCE = 75;
 const CPU_DRIVE_BASE_TD = 0.42;
 const CPU_DRIVE_BASE_FG = 0.3;
 const CPU_DRIVE_ANIMATION_DURATION = 2.4;
+const BASE_DRAFT_PICKS = { 1: 1, 2: 1, 3: 1 };
+const ROSTER_MIN_SIZE = 5;
+const ROSTER_MAX_SIZE = 12;
+const INITIAL_ROSTER_POSITIONS = ["QB", "RB", "WR1", "WR2", "WR3", "TE", "LB", "CB"];
+const POSITION_RATING_RANGE = {
+  QB: [3, 5],
+  RB: [2, 5],
+  WR1: [3, 5],
+  WR2: [2, 5],
+  WR3: [2, 4],
+  TE: [2, 4],
+  LB: [2, 4],
+  CB: [2, 4],
+  DL: [2, 4],
+  S: [2, 4],
+};
+const FIRST_NAMES = [
+  "Miles",
+  "Jalen",
+  "Tariq",
+  "Devin",
+  "Harper",
+  "Noah",
+  "Cruz",
+  "Eli",
+  "Caleb",
+  "Zane",
+  "Roman",
+];
+const LAST_NAMES = [
+  "Hendrix",
+  "Langford",
+  "Samuels",
+  "Holloway",
+  "Carver",
+  "Bennett",
+  "Owens",
+  "Porter",
+  "Dalton",
+  "Monroe",
+  "Whitaker",
+];
 
 let fieldSize = getFieldSize();
 
@@ -266,6 +314,95 @@ function randomInRange(min, max) {
   return min + Math.random() * (max - min);
 }
 
+function randomItem(list) {
+  if (!list || list.length === 0) {
+    return null;
+  }
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function getPositionRatingRange(position) {
+  return POSITION_RATING_RANGE[position] || [2, 4];
+}
+
+function formatRatingStars(rating) {
+  const rounded = clamp(Math.round(rating), 1, 5);
+  return "★".repeat(rounded) + "☆".repeat(5 - rounded);
+}
+
+function generatePlayer(options = {}) {
+  const position = options.position || randomItem(Object.keys(POSITION_RATING_RANGE));
+  const [minRating, maxRating] = options.ratingRange || getPositionRatingRange(position);
+  const rating = clamp(Math.round(randomInRange(minRating, maxRating)), 1, 5);
+  return {
+    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    name: `${randomItem(FIRST_NAMES)} ${randomItem(LAST_NAMES)}`,
+    position,
+    rating,
+  };
+}
+
+function generateInitialRoster() {
+  return INITIAL_ROSTER_POSITIONS.map((position) => generatePlayer({ position }));
+}
+
+function cloneDraftPicks(picks) {
+  const source = picks || BASE_DRAFT_PICKS;
+  return {
+    1: source[1] ?? BASE_DRAFT_PICKS[1],
+    2: source[2] ?? BASE_DRAFT_PICKS[2],
+    3: source[3] ?? BASE_DRAFT_PICKS[3],
+  };
+}
+
+function ensureDraftPicks(franchise) {
+  if (!franchise) {
+    return cloneDraftPicks(BASE_DRAFT_PICKS);
+  }
+  if (!franchise.draftPicks) {
+    franchise.draftPicks = cloneDraftPicks(BASE_DRAFT_PICKS);
+  }
+  return franchise.draftPicks;
+}
+
+function getDraftRatingRange(round) {
+  if (round === 1) {
+    return [4, 5];
+  }
+  if (round === 2) {
+    return [3, 5];
+  }
+  return [2, 4];
+}
+
+function getTradeRoundForRating(rating) {
+  if (rating >= 5) {
+    return 1;
+  }
+  if (rating >= 4) {
+    return 2;
+  }
+  return 3;
+}
+
+function runSeasonDraft(franchise) {
+  if (!franchise) {
+    return [];
+  }
+  const picks = ensureDraftPicks(franchise);
+  const summary = [];
+  [1, 2, 3].forEach((round) => {
+    const pickCount = Math.max(picks[round] || 0, 1);
+    for (let i = 0; i < pickCount; i += 1) {
+      const rookie = generatePlayer({ ratingRange: getDraftRatingRange(round) });
+      franchise.roster.push(rookie);
+      summary.push(`R${round}: ${rookie.name} (${rookie.position}) ${rookie.rating}★`);
+    }
+  });
+  franchise.draftPicks = cloneDraftPicks(BASE_DRAFT_PICKS);
+  return summary;
+}
+
 function rollCpuDriveOutcome(options = {}) {
   const difficulty = getOpponentDifficultyMultiplier();
   const distanceToGoal = clamp(
@@ -434,6 +571,57 @@ function updateSeasonHud() {
   seasonInfoEl.textContent = `Season ${franchise.season} · ${stageLabel} · ${opponentName} · ${recordText}${trophyText}`;
 }
 
+function setHomeScreenMessage(text) {
+  if (homeMessageEl) {
+    homeMessageEl.textContent = text || "";
+  }
+}
+
+function updateDraftPicksDisplay() {
+  if (!draftPicksDisplayEl) {
+    return;
+  }
+  const picks = state.franchise?.draftPicks || BASE_DRAFT_PICKS;
+  const round1 = picks[1] ?? BASE_DRAFT_PICKS[1];
+  const round2 = picks[2] ?? BASE_DRAFT_PICKS[2];
+  const round3 = picks[3] ?? BASE_DRAFT_PICKS[3];
+  draftPicksDisplayEl.textContent = `Draft Picks: R1×${round1} · R2×${round2} · R3×${round3}`;
+}
+
+function updateRosterUI() {
+  const roster = state.franchise?.roster || [];
+  if (rosterListEl) {
+    if (roster.length === 0) {
+      rosterListEl.innerHTML = '<div class="roster-entry">No players signed yet.</div>';
+    } else {
+      rosterListEl.innerHTML = roster
+        .map(
+          (player) => `
+            <div class="roster-entry">
+              <div><strong>${player.position}</strong> ${player.name}</div>
+              <div class="rating-stars">${formatRatingStars(player.rating)}</div>
+            </div>`
+        )
+        .join("");
+    }
+  }
+  if (rosterSelectEl) {
+    if (roster.length === 0) {
+      rosterSelectEl.innerHTML = '<option value="">No players</option>';
+      rosterSelectEl.disabled = true;
+    } else {
+      rosterSelectEl.disabled = false;
+      rosterSelectEl.innerHTML = roster
+        .map(
+          (player) =>
+            `<option value="${player.id}">${player.position} · ${player.name} (${player.rating}★)</option>`
+        )
+        .join("");
+    }
+  }
+  updateDraftPicksDisplay();
+}
+
 function updateHomeScreenPanel(message) {
   const franchise = state.franchise;
   if (!franchise) {
@@ -446,9 +634,7 @@ function updateHomeScreenPanel(message) {
     if (homeOpponentEl) {
       homeOpponentEl.textContent = "CPU";
     }
-    if (homeMessageEl) {
-      homeMessageEl.textContent = message || "";
-    }
+    setHomeScreenMessage(message);
     return;
   }
   if (homeRecordEl) {
@@ -460,9 +646,10 @@ function updateHomeScreenPanel(message) {
   if (homeOpponentEl) {
     homeOpponentEl.textContent = franchise.opponent ? franchise.opponent.name : "CPU";
   }
-  if (homeMessageEl) {
-    homeMessageEl.textContent = message || "";
+  if (typeof message !== "undefined") {
+    setHomeScreenMessage(message);
   }
+  updateRosterUI();
 }
 
 function showHomeScreen(message) {
@@ -474,13 +661,7 @@ function showHomeScreen(message) {
   updateHomeScreenPanel(displayMessage);
   homeScreenEl.classList.remove("hidden");
   state.homeScreen.visible = true;
-  state.homeScreen.busy = false;
-  if (homePlayButton) {
-    homePlayButton.disabled = false;
-  }
-  if (homeSimButton) {
-    homeSimButton.disabled = false;
-  }
+  setHomeScreenBusy(false);
 }
 
 function hideHomeScreen() {
@@ -502,10 +683,113 @@ function setHomeScreenBusy(isBusy) {
   if (homeSimButton) {
     homeSimButton.disabled = isBusy;
   }
+  if (signPlayerButton) {
+    signPlayerButton.disabled = isBusy;
+  }
+  if (releasePlayerButton) {
+    releasePlayerButton.disabled = isBusy || (state.franchise?.roster || []).length === 0;
+  }
+  if (tradePlayerButton) {
+    tradePlayerButton.disabled = isBusy || (state.franchise?.roster || []).length === 0;
+  }
+  if (rosterSelectEl) {
+    rosterSelectEl.disabled = isBusy || (state.franchise?.roster || []).length === 0;
+  }
+  updateRosterUI();
 }
 
 function queueHomeScreenMessage(message) {
   state.homeScreen.pendingMessage = message || "";
+}
+
+function appendHomeScreenMessage(message) {
+  if (!message) {
+    return;
+  }
+  if (state.homeScreen.pendingMessage) {
+    state.homeScreen.pendingMessage = `${state.homeScreen.pendingMessage} ${message}`;
+    return;
+  }
+  state.homeScreen.pendingMessage = message;
+}
+
+function getSelectedRosterPlayerId() {
+  if (!rosterSelectEl) {
+    return null;
+  }
+  return rosterSelectEl.value || null;
+}
+
+function removeRosterPlayer(franchise, playerId) {
+  if (!franchise || !playerId) {
+    return null;
+  }
+  const roster = franchise.roster || [];
+  const index = roster.findIndex((player) => player.id === playerId);
+  if (index === -1) {
+    return null;
+  }
+  const [removed] = roster.splice(index, 1);
+  return removed;
+}
+
+function signRandomPlayer() {
+  const franchise = state.franchise;
+  if (!franchise) {
+    return;
+  }
+  const roster = franchise.roster || [];
+  if (roster.length >= ROSTER_MAX_SIZE) {
+    setHomeScreenMessage("Roster full. Release or trade a player first.");
+    return;
+  }
+  const newPlayer = generatePlayer();
+  roster.push(newPlayer);
+  updateRosterUI();
+  setHomeScreenMessage(`Signed ${newPlayer.name} (${newPlayer.position})`);
+}
+
+function releaseSelectedPlayer() {
+  const franchise = state.franchise;
+  if (!franchise) {
+    return;
+  }
+  const roster = franchise.roster || [];
+  if (roster.length <= ROSTER_MIN_SIZE) {
+    setHomeScreenMessage("Need to keep core intact. Sign someone before releasing.");
+    return;
+  }
+  const playerId = getSelectedRosterPlayerId();
+  const removed = removeRosterPlayer(franchise, playerId);
+  if (!removed) {
+    setHomeScreenMessage("Select a player to release.");
+    return;
+  }
+  updateRosterUI();
+  setHomeScreenMessage(`Released ${removed.name}.`);
+}
+
+function tradeSelectedPlayer() {
+  const franchise = state.franchise;
+  if (!franchise) {
+    return;
+  }
+  const roster = franchise.roster || [];
+  if (roster.length <= ROSTER_MIN_SIZE) {
+    setHomeScreenMessage("Roster too thin to trade right now.");
+    return;
+  }
+  const playerId = getSelectedRosterPlayerId();
+  const removed = removeRosterPlayer(franchise, playerId);
+  if (!removed) {
+    setHomeScreenMessage("Select a player to trade.");
+    return;
+  }
+  const round = getTradeRoundForRating(removed.rating);
+  const picks = ensureDraftPicks(franchise);
+  picks[round] = (picks[round] || 0) + 1;
+  updateRosterUI();
+  setHomeScreenMessage(`Traded ${removed.name} for a round ${round} pick.`);
 }
 
 function pickNextOpponent() {
@@ -765,7 +1049,12 @@ function resetGame() {
   resetFranchiseProgress();
 }
 
-function beginSeason(seasonNumber, trophies) {
+function beginSeason(seasonNumber, trophies, carryover = {}) {
+  const roster =
+    carryover.roster && carryover.roster.length > 0
+      ? [...carryover.roster]
+      : generateInitialRoster();
+  const draftPicks = cloneDraftPicks(carryover.draftPicks || BASE_DRAFT_PICKS);
   state.franchise = {
     season: seasonNumber,
     week: 1,
@@ -777,6 +1066,8 @@ function beginSeason(seasonNumber, trophies) {
     schedule: generateSchedule(GAME_RULES.regularWeeks, seasonNumber),
     playoffOpponents: [],
     opponent: null,
+    roster,
+    draftPicks,
   };
   pickNextOpponent();
   showHomeScreen();
@@ -786,7 +1077,20 @@ function advanceSeason() {
   const previous = state.franchise;
   const trophies = previous ? previous.trophies : 0;
   const nextSeason = previous ? previous.season + 1 : 1;
-  beginSeason(nextSeason, trophies);
+  let carryover = {};
+  if (previous) {
+    const draftSummary = runSeasonDraft(previous);
+    carryover = {
+      roster: previous.roster ? [...previous.roster] : [],
+      draftPicks: previous.draftPicks ? { ...previous.draftPicks } : cloneDraftPicks(BASE_DRAFT_PICKS),
+    };
+    const draftMessage =
+      draftSummary.length > 0
+        ? `Draft haul · ${draftSummary.join(" · ")}`
+        : "Draft complete. Roster reloaded for the new season.";
+    appendHomeScreenMessage(draftMessage);
+  }
+  beginSeason(nextSeason, trophies, carryover);
 }
 
 function resetFranchiseProgress() {
@@ -1383,6 +1687,33 @@ if (homeSimButton) {
       return;
     }
     simulateNextGame();
+  });
+}
+
+if (signPlayerButton) {
+  signPlayerButton.addEventListener("click", () => {
+    if (state.homeScreen.busy) {
+      return;
+    }
+    signRandomPlayer();
+  });
+}
+
+if (releasePlayerButton) {
+  releasePlayerButton.addEventListener("click", () => {
+    if (state.homeScreen.busy) {
+      return;
+    }
+    releaseSelectedPlayer();
+  });
+}
+
+if (tradePlayerButton) {
+  tradePlayerButton.addEventListener("click", () => {
+    if (state.homeScreen.busy) {
+      return;
+    }
+    tradeSelectedPlayer();
   });
 }
 

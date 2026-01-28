@@ -534,6 +534,17 @@ body {
   background: linear-gradient(180deg, #4a7bd2, #132a59);
 }
 
+.player.has-ball .player-avatar {
+  box-shadow: 0 0 12px rgba(255, 210, 105, 0.8), 0 0 24px rgba(255, 210, 105, 0.4);
+  border-color: rgba(255, 210, 105, 0.8);
+}
+
+.player.has-ball .player-label {
+  background: rgba(255, 210, 105, 0.9);
+  color: #2a1604;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .player.targeted {
   box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.8);
   transform: translate(-50%, -55%) scale(1.1);

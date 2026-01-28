@@ -176,7 +176,18 @@ const state = {
     busy: false,
     pendingMessage: "",
   },
+  awaitingSnap: false,
 };
+
+function setBallCarrier(player) {
+  if (state.ball.carrier && state.ball.carrier.element) {
+    state.ball.carrier.element.classList.remove("has-ball");
+  }
+  state.ball.carrier = player || null;
+  if (player?.element) {
+    player.element.classList.add("has-ball");
+  }
+}
 
 function getFieldSize() {
   const rect = field.getBoundingClientRect();
@@ -217,6 +228,9 @@ function createPlayer(label, team, role) {
     speed: 200,
     baseSpeed: 200,
     element: el,
+    labelElement: badge,
+    defaultLabel: label,
+    displayName: label,
     routePhase: 0,
     breakPoint: null,
     goPoint: null,
@@ -330,6 +344,22 @@ function formatRatingStars(rating) {
   return "★".repeat(rounded) + "☆".repeat(5 - rounded);
 }
 
+function assignFieldPlayerLabel(player, rosterEntry) {
+  if (!player || !player.labelElement) {
+    return;
+  }
+  const label = rosterEntry ? rosterEntry.name : player.defaultLabel;
+  player.displayName = label;
+  player.labelElement.textContent = label;
+  if (rosterEntry) {
+    player.labelElement.title = `${rosterEntry.position} · ${formatRatingStars(rosterEntry.rating)}`;
+    player.rosterProfile = rosterEntry;
+  } else {
+    player.labelElement.removeAttribute("title");
+    player.rosterProfile = null;
+  }
+}
+
 function generatePlayer(options = {}) {
   const position = options.position || randomItem(Object.keys(POSITION_RATING_RANGE));
   const [minRating, maxRating] = options.ratingRange || getPositionRatingRange(position);
@@ -401,6 +431,44 @@ function runSeasonDraft(franchise) {
   });
   franchise.draftPicks = cloneDraftPicks(BASE_DRAFT_PICKS);
   return summary;
+}
+
+function extractRosterPlayer(roster, position) {
+  if (!roster || roster.length === 0) {
+    return null;
+  }
+  const index = roster.findIndex((player) => player.position === position);
+  if (index === -1) {
+    return null;
+  }
+  return roster.splice(index, 1)[0];
+}
+
+function applyRosterToPlayers() {
+  if (!state.players?.qb) {
+    return;
+  }
+  const rosterPool = state.franchise?.roster ? [...state.franchise.roster] : [];
+  const assignByPosition = (position, fieldPlayer) => {
+    if (!fieldPlayer) {
+      return;
+    }
+    const rosterEntry = extractRosterPlayer(rosterPool, position);
+    assignFieldPlayerLabel(fieldPlayer, rosterEntry);
+  };
+  assignByPosition("QB", state.players.qb);
+  state.players.receivers.forEach((receiver) => {
+    assignByPosition(receiver.preset.label, receiver);
+  });
+  const fallbackTargets = [
+    ...state.players.offensiveLine,
+    ...state.players.defensiveLine,
+    ...state.players.defenders,
+  ];
+  fallbackTargets.forEach((player) => {
+    const rosterEntry = rosterPool.length > 0 ? rosterPool.shift() : null;
+    assignFieldPlayerLabel(player, rosterEntry);
+  });
 }
 
 function rollCpuDriveOutcome(options = {}) {
@@ -620,6 +688,7 @@ function updateRosterUI() {
     }
   }
   updateDraftPicksDisplay();
+  applyRosterToPlayers();
 }
 
 function updateHomeScreenPanel(message) {
@@ -818,8 +887,9 @@ function pickNextOpponent() {
 
 function resetInGameState() {
   state.playActive = false;
+  state.awaitingSnap = false;
   state.ball.inFlight = false;
-  state.ball.carrier = null;
+  setBallCarrier(null);
   hideRoutePreview();
   state.offenseScore = 0;
   state.defenseScore = 0;
@@ -834,6 +904,7 @@ function resetInGameState() {
 
 function prepareMatch() {
   hideHomeScreen();
+  applyRosterToPlayers();
   resetInGameState();
   startPlay();
 }
@@ -893,7 +964,7 @@ function setupFormation() {
     rusher.assignment = null;
   });
 
-  state.ball.carrier = qb;
+  setBallCarrier(qb);
   state.ball.inFlight = false;
   state.ball.targetPoint = null;
   state.ball.flightTime = 0;
@@ -1040,9 +1111,25 @@ function handleGlobalPointerUp(event) {
 
 function startPlay() {
   setupFormation();
-  state.playActive = true;
-  setMessage(`Drive ${state.drive} · ${formatDown(state.down)} & ${Math.max(1, Math.round(state.nextFirstDown - state.ballOn))}`);
+  state.playActive = false;
+  state.awaitingSnap = true;
+  setMessage(
+    `Drive ${state.drive} · ${formatDown(state.down)} & ${Math.max(
+      1,
+      Math.round(state.nextFirstDown - state.ballOn)
+    )} · Press Space to snap`
+  );
   updateHud();
+}
+
+function snapBall() {
+  if (!state.awaitingSnap || state.playActive || state.homeScreen.visible) {
+    return;
+  }
+  state.awaitingSnap = false;
+  state.playActive = true;
+  state.playClock = 0;
+  setMessage("Ball snapped! Routes developing...");
 }
 
 function resetGame() {
@@ -1069,6 +1156,7 @@ function beginSeason(seasonNumber, trophies, carryover = {}) {
     roster,
     draftPicks,
   };
+  applyRosterToPlayers();
   pickNextOpponent();
   showHomeScreen();
 }
@@ -1143,7 +1231,7 @@ function attemptPass(powerRatio = 0.5) {
   state.ball.targetPoint = passTarget;
   state.ball.inFlight = true;
   state.ball.flightTime = 0;
-  state.ball.carrier = null;
+  setBallCarrier(null);
   const dx = passTarget.x - state.players.qb.x;
   const dy = passTarget.y - state.players.qb.y;
   const horizontalDistance = Math.hypot(dx, dy) || 1;
@@ -1354,7 +1442,7 @@ function attemptOffensiveCatch() {
     state.ball.flightTime > 0.25 &&
     planeDistance(qb) < effectiveRadius * 0.7
   ) {
-    state.ball.carrier = qb;
+    setBallCarrier(qb);
     state.ball.inFlight = false;
     state.ball.targetPoint = null;
     state.controlledPlayer = qb;
@@ -1363,7 +1451,7 @@ function attemptOffensiveCatch() {
 }
 
 function completePass(receiver) {
-  state.ball.carrier = receiver;
+  setBallCarrier(receiver);
   state.ball.inFlight = false;
   state.ball.targetPoint = null;
   state.ball.z = 0;
@@ -1406,7 +1494,7 @@ function handleInterceptions() {
     const distance = Math.hypot(defender.x - state.ball.x, defender.y - state.ball.y);
     if (distance < 18) {
       state.ball.inFlight = false;
-      state.ball.carrier = null;
+      setBallCarrier(null);
       setMessage("Picked off!");
       endPlay("turnover", xToYards(defender.x));
       return;
@@ -1426,8 +1514,10 @@ function checkForTouchdown() {
 
 function endPlay(outcome, yardLine) {
   state.playActive = false;
+  state.awaitingSnap = false;
   state.ball.inFlight = false;
   state.ball.targetPoint = null;
+  setBallCarrier(null);
   state.controlledPlayer = state.players.qb;
   state.chargingThrow = false;
   state.throwCharge = 0;
@@ -1735,6 +1825,11 @@ function renderPlayers() {
 
 function handleKeyDown(event) {
   const key = event.key;
+  if (event.code === "Space" || key === " ") {
+    event.preventDefault();
+    snapBall();
+    return;
+  }
   const lower = key.toLowerCase();
   const handled = [
     "arrowup",
